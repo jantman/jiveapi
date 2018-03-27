@@ -35,39 +35,59 @@ Jason Antman <jason@jasonantman.com> <http://www.jasonantman.com>
 ##################################################################################
 """
 
-import jiveapi.version as version
+import logging
+import json
 
-import re
+from jiveapi.utils import (
+    set_log_level_format, set_log_info, set_log_debug, prettyjson
+)
+
+from unittest.mock import patch, call, Mock
+
+pbm = 'jiveapi.utils'
 
 
-class TestVersion(object):
+class TestUtils(object):
 
-    def test_project_url(self):
-        expected = 'https://github.com/jantman/jiveapi'
-        assert version.PROJECT_URL == expected
+    def test_set_log_info(self):
+        mock_log = Mock(spec_set=logging.Logger)
+        with patch('%s.set_log_level_format' % pbm) as mock_set:
+            set_log_info(mock_log)
+        assert mock_set.mock_calls == [
+            call(
+                mock_log, logging.INFO,
+                '%(asctime)s %(levelname)s:%(name)s:%(message)s'
+            )
+        ]
 
-    def test_is_semver(self):
-        # see:
-        # https://github.com/mojombo/semver.org/issues/59#issuecomment-57884619
-        semver_ptn = re.compile(
-            r'^'
-            r'(?P<MAJOR>(?:'
-            r'0|(?:[1-9]\d*)'
-            r'))'
-            r'\.'
-            r'(?P<MINOR>(?:'
-            r'0|(?:[1-9]\d*)'
-            r'))'
-            r'\.'
-            r'(?P<PATCH>(?:'
-            r'0|(?:[1-9]\d*)'
-            r'))'
-            r'(?:-(?P<prerelease>'
-            r'[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*'
-            r'))?'
-            r'(?:\+(?P<build>'
-            r'[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*'
-            r'))?'
-            r'$'
-        )
-        assert semver_ptn.match(version.VERSION) is not None
+    def test_set_log_debug(self):
+        mock_log = Mock(spec_set=logging.Logger)
+        with patch('%s.set_log_level_format' % pbm) as mock_set:
+            set_log_debug(mock_log)
+        assert mock_set.mock_calls == [
+            call(mock_log, logging.DEBUG,
+                 "%(asctime)s [%(levelname)s %(filename)s:%(lineno)s - "
+                 "%(name)s.%(funcName)s() ] %(message)s")
+        ]
+
+    def test_set_log_level_format(self):
+        mock_log = Mock(spec_set=logging.Logger)
+        mock_handler = Mock(spec_set=logging.Handler)
+        type(mock_log).handlers = [mock_handler]
+        with patch('%s.logging.Formatter' % pbm) as mock_formatter:
+            set_log_level_format(mock_log, 5, 'foo')
+        assert mock_formatter.mock_calls == [
+            call(fmt='foo')
+        ]
+        assert mock_handler.mock_calls == [
+            call.setFormatter(mock_formatter.return_value)
+        ]
+        assert mock_log.mock_calls == [
+            call.setLevel(5)
+        ]
+
+    def test_prettyjson(self):
+        d = {'foo': 'bar', 'bar': 'baz'}
+        assert json.dumps(
+            d, sort_keys=True, indent=4, separators=(',', ': ')
+        ) == prettyjson(d)

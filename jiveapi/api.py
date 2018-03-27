@@ -68,3 +68,6 @@ class JiveApi(object):
 
     def user(self, id_number='@me'):
         return self._get('core/v3/people/%s' % id_number).json()
+
+    def api_version(self):
+        return self._get('version').json()

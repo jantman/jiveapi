@@ -40,7 +40,8 @@ import argparse
 import logging
 
 from jiveapi.api import JiveApi
-from jiveapi.utils import set_log_debug, set_log_info
+from jiveapi.utils import set_log_debug, set_log_info, prettyjson
+from jiveapi.version import PROJECT_URL, VERSION
 
 logger = logging.getLogger(__name__)
 
@@ -87,14 +88,21 @@ class JiveApiCli(object):
                 ])
             )
 
+    def show_version(self):
+        print(prettyjson(self._api.api_version()))
+
 
 def parse_args():
     """
     Parse command-line arguments.
     """
-    p = argparse.ArgumentParser(description='Jive API command line client')
+    p = argparse.ArgumentParser(
+        prog='jiveapi', description='Jive API command line client (AGPLv3)'
+    )
     p.add_argument('-v', '--verbose', dest='verbose', action='count', default=0,
                    help='verbose output. specify twice for debug-level output.')
+    p.add_argument('-V', '--version', action='version',
+                   version='%(prog)s ' + '%s <%s>' % (VERSION, PROJECT_URL))
     p.add_argument('-U', '--url', dest='baseurl', action='store', type=str,
                    default=None,
                    help='Jive API base URL (https://example.com/api/); if not '
@@ -114,6 +122,12 @@ def parse_args():
         'userinfo', help='Return information about the current user'
     )
     user.set_defaults(action='userinfo')
+
+    # API Version Info
+    ver = subp.add_parser(
+        'version', help='Return the Jive API\'s full version JSON response'
+    )
+    ver.set_defaults(action='version')
 
     args = p.parse_args()
     if args.baseurl is None:
@@ -145,6 +159,8 @@ def main():
     cli = JiveApiCli(args.baseurl, args.username, args.password)
     if args.action == 'userinfo':
         cli.show_user_info()
+    elif args.action == 'version':
+        cli.show_version()
     else:
         logger.error('ERROR: Unknown or unspecified action.')
         raise SystemExit(1)

@@ -35,39 +35,46 @@ Jason Antman <jason@jasonantman.com> <http://www.jasonantman.com>
 ##################################################################################
 """
 
-import jiveapi.version as version
+pbm = 'jiveapi.utils'
 
-import re
+
+class TestUser(object):
+
+    def test_user_self_svc_acct(self, api):
+        res = api.user()
+        assert res['jive']['federated'] is True
+        assert res['jive']['status'] == 'registered'
+        assert res['displayName'] == 'Jason Antman'
+        assert res['id'] == '8627'
+        assert res['type'] == 'person'
+        assert res['name']['givenName'] == 'Jason'
 
 
 class TestVersion(object):
 
-    def test_project_url(self):
-        expected = 'https://github.com/jantman/jiveapi'
-        assert version.PROJECT_URL == expected
-
-    def test_is_semver(self):
-        # see:
-        # https://github.com/mojombo/semver.org/issues/59#issuecomment-57884619
-        semver_ptn = re.compile(
-            r'^'
-            r'(?P<MAJOR>(?:'
-            r'0|(?:[1-9]\d*)'
-            r'))'
-            r'\.'
-            r'(?P<MINOR>(?:'
-            r'0|(?:[1-9]\d*)'
-            r'))'
-            r'\.'
-            r'(?P<PATCH>(?:'
-            r'0|(?:[1-9]\d*)'
-            r'))'
-            r'(?:-(?P<prerelease>'
-            r'[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*'
-            r'))?'
-            r'(?:\+(?P<build>'
-            r'[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*'
-            r'))?'
-            r'$'
-        )
-        assert semver_ptn.match(version.VERSION) is not None
+    def test_version(self, api, jive_host, jive_scheme):
+        res = api.api_version()
+        assert res == {
+            'instanceURL': '%s://%s' % (jive_scheme, jive_host),
+            'jiveCoreVersions': [
+                {
+                    'documentation': 'https://developers.jivesoftware.com/'
+                                     'api/v2/rest',
+                    'revision': 3,
+                    'uri': '/api/core/v2',
+                    'version': 2
+                },
+                {
+                    'documentation': 'https://developers.jivesoftware.com/'
+                                     'api/v3/rest',
+                    'revision': 15,
+                    'uri': '/api/core/v3',
+                    'version': 3
+                }
+            ],
+            'jiveEdition': {
+                'product': 'cloud',
+                'tier': 999
+            },
+            'jiveVersion': '2016.3.8.1'
+        }
