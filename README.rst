@@ -37,7 +37,7 @@ TBD.
 Testing
 -------
 
-TBD.
+Testing is done via `tox <https://tox.readthedocs.io/en/latest/>`_ and `pytest <https://docs.pytest.org/en/latest/>`_. ``pip install tox`` then ``tox`` to run tests.
 
 Development
 -----------

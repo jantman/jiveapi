@@ -35,48 +35,53 @@ Jason Antman <jason@jasonantman.com> <http://www.jasonantman.com>
 ##################################################################################
 """
 
-from setuptools import setup, find_packages
-from jiveapi.version import VERSION, PROJECT_URL
+import sys
+import logging
 
-with open('README.rst') as file:
-    long_description = file.read()
-
-requires = [
-    'requests < 3.0.0'
-]
-
-
-classifiers = [
-    'Development Status :: 3 - Alpha',
-    'License :: OSI Approved :: GNU Affero General Public License '
-    'v3 or later (AGPLv3+)',
-    'Natural Language :: English',
-    'Operating System :: OS Independent',
-    'Programming Language :: Python',
-    'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.4',
-    'Programming Language :: Python :: 3.5',
-    'Programming Language :: Python :: 3.6',
-    'Programming Language :: Python :: 3.7',
-    'Topic :: Documentation',
-    'Topic :: Office/Business'
-]
-
-setup(
-    name='jiveapi',
-    version=VERSION,
-    author='Jason Antman',
-    author_email='jason@jasonantman.com',
-    packages=find_packages(),
-    url=PROJECT_URL,
-    description='Simple and limited Python client for Jive collaboration '
-                'software ReST API v3.',
-    long_description=long_description,
-    install_requires=requires,
-    keywords="jive collaboration client",
-    classifiers=classifiers,
-    entry_points="""
-    [console_scripts]
-    jiveapi = jiveapi.cli:main
-    """
+from jiveapi.cli import (
+    set_log_level_format, set_log_info, set_log_debug
 )
+
+from unittest.mock import patch, call, Mock
+
+pbm = 'jiveapi.cli'
+
+
+class TestSetLogging(object):
+
+    def test_set_log_info(self):
+        mock_log = Mock(spec_set=logging.Logger)
+        with patch('%s.set_log_level_format' % pbm) as mock_set:
+            set_log_info(mock_log)
+        assert mock_set.mock_calls == [
+            call(
+                mock_log, logging.INFO,
+                '%(asctime)s %(levelname)s:%(name)s:%(message)s'
+            )
+        ]
+
+    def test_set_log_debug(self):
+        mock_log = Mock(spec_set=logging.Logger)
+        with patch('%s.set_log_level_format' % pbm) as mock_set:
+            set_log_debug(mock_log)
+        assert mock_set.mock_calls == [
+            call(mock_log, logging.DEBUG,
+                 "%(asctime)s [%(levelname)s %(filename)s:%(lineno)s - "
+                 "%(name)s.%(funcName)s() ] %(message)s")
+        ]
+
+    def test_set_log_level_format(self):
+        mock_log = Mock(spec_set=logging.Logger)
+        mock_handler = Mock(spec_set=logging.Handler)
+        type(mock_log).handlers = [mock_handler]
+        with patch('%s.logging.Formatter' % pbm) as mock_formatter:
+            set_log_level_format(mock_log, 5, 'foo')
+        assert mock_formatter.mock_calls == [
+            call(fmt='foo')
+        ]
+        assert mock_handler.mock_calls == [
+            call.setFormatter(mock_formatter.return_value)
+        ]
+        assert mock_log.mock_calls == [
+            call.setLevel(5)
+        ]
