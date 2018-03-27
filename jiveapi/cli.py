@@ -35,47 +35,57 @@ Jason Antman <jason@jasonantman.com> <http://www.jasonantman.com>
 ##################################################################################
 """
 
+import os
 import argparse
 import logging
 
+from jiveapi.api import JiveApi
+from jiveapi.utils import set_log_debug, set_log_info
+
 logger = logging.getLogger(__name__)
 
-
-def set_log_info(logger):
-    """
-    set logger level to INFO via :py:func:`~.set_log_level_format`.
-    """
-    set_log_level_format(logger, logging.INFO,
-                         '%(asctime)s %(levelname)s:%(name)s:%(message)s')
+for lname in ['requests', 'urllib', 'urllib3']:
+    l = logging.getLogger(lname)
+    l.setLevel(logging.WARNING)
+    l.propagate = True
 
 
-def set_log_debug(logger):
-    """
-    set logger level to DEBUG, and debug-level output format,
-    via :py:func:`~.set_log_level_format`.
-    """
-    set_log_level_format(
-        logger,
-        logging.DEBUG,
-        "%(asctime)s [%(levelname)s %(filename)s:%(lineno)s - "
-        "%(name)s.%(funcName)s() ] %(message)s"
-    )
+class JiveApiCli(object):
 
+    def __init__(self, base_url, username, password):
+        self._api = JiveApi(base_url, username, password)
 
-def set_log_level_format(logger, level, format):
-    """
-    Set logger level and format.
-
-    :param logger: the logger object to set on
-    :type logger: logging.Logger
-    :param level: logging level; see the :py:mod:`logging` constants.
-    :type level: int
-    :param format: logging formatter format string
-    :type format: str
-    """
-    formatter = logging.Formatter(fmt=format)
-    logger.handlers[0].setFormatter(formatter)
-    logger.setLevel(level)
+    def show_user_info(self):
+        user = self._api.user()
+        username = user.get('jive', {}).get('username', '')
+        print(
+            'Authenticated to Jive as "%s" (id %s) %s' % (
+                user['displayName'], user['id'], username
+            )
+        )
+        print('\tUser type %s (%s)' % (user['typeCode'], user['type']))
+        print('\tEmails: %s' % ', '.join([
+            e['value'] for e in sorted(
+                user['emails'], key=lambda x: x.get('jive_displayOrder', 0)
+            )
+        ]))
+        print(
+            '\tThumbnail %s: %s' % (user['thumbnailId'], user['thumbnailUrl'])
+        )
+        print('\tInitial Login: %s - Updated %s' % (
+            user['initialLogin'], user['updated']
+        ))
+        if 'jive' in user:
+            j = user['jive']
+            jive_items = [
+                'enabled', 'external', 'externalContributor', 'federated',
+                'lastAuthenticated', 'lastProfileUpdate', 'status', 'visible'
+            ]
+            print(
+                '\t%s' % ' '.join([
+                    '%s=%s' % (i, j[i]) for i in j.keys() if i in jive_items
+                ])
+            )
 
 
 def parse_args():
@@ -85,7 +95,33 @@ def parse_args():
     p = argparse.ArgumentParser(description='Jive API command line client')
     p.add_argument('-v', '--verbose', dest='verbose', action='count', default=0,
                    help='verbose output. specify twice for debug-level output.')
+    p.add_argument('-U', '--url', dest='baseurl', action='store', type=str,
+                   default=None,
+                   help='Jive API base URL (https://example.com/api/); if not '
+                        'specified will be taken from JIVE_URL env var')
+    p.add_argument('-u', '--user', dest='username', action='store', type=str,
+                   default=None,
+                   help='Jive API Username (HTTP Basic Auth); if not '
+                        'specified will be taken from JIVE_USER env var')
+    p.add_argument('-p', '--pass', dest='password', action='store', type=str,
+                   default=None,
+                   help='Jive API Password (HTTP Basic Auth); if not '
+                        'specified will be taken from JIVE_PASS env var')
+    subp = p.add_subparsers(title='subcommands')
+
+    # Current User Info
+    user = subp.add_parser(
+        'userinfo', help='Return information about the current user'
+    )
+    user.set_defaults(action='userinfo')
+
     args = p.parse_args()
+    if args.baseurl is None:
+        args.baseurl = os.environ.get('JIVE_URL', None)
+    if args.username is None:
+        args.username = os.environ.get('JIVE_USER', None)
+    if args.password is None:
+        args.password = os.environ.get('JIVE_PASS', None)
     return args
 
 
@@ -106,7 +142,12 @@ def main():
     elif args.verbose == 1:
         set_log_info(logger)
 
-    raise NotImplementedError()
+    cli = JiveApiCli(args.baseurl, args.username, args.password)
+    if args.action == 'userinfo':
+        cli.show_user_info()
+    else:
+        logger.error('ERROR: Unknown or unspecified action.')
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":
