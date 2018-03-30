@@ -94,9 +94,9 @@ class TestVersion(object):
         }
 
 
-class TestCreateContents(object):
+class TestCreateContent(object):
 
-    def test_create_contents_exception(self, api):
+    def test_create_content_exception(self, api):
         """
         Recorded API transaction using betamax. Depends on Jive state.
         """
@@ -110,7 +110,7 @@ class TestCreateContents(object):
             }
         }
         with pytest.raises(ContentConflictException) as excinfo:
-            api.create_contents(content)
+            api.create_content(content)
         assert excinfo.value.response.url == 'https://sandbox.jiveon.com/' \
                                              'api/core/v3/contents'
         assert excinfo.value.response.status_code == 409
@@ -118,7 +118,7 @@ class TestCreateContents(object):
         msg = 'A document with the same title already exists in this place'
         assert excinfo.value.error_message == msg
 
-    def test_create_contents(self, api):
+    def test_create_content(self, api):
         """Recorded API transaction using betamax."""
         content = {
             'type': 'document',
@@ -129,7 +129,7 @@ class TestCreateContents(object):
                         '</p></body>'
             }
         }
-        res = api.create_contents(content)
+        res = api.create_content(content)
         assert isinstance(res, type({}))
         assert res['entityType'] == 'document'
         assert res['author']['id'] == AUTHOR_ID
@@ -155,11 +155,11 @@ class TestCreateContents(object):
         assert res['type'] == 'document'
 
 
-class TestGetContents(object):
+class TestGetContent(object):
 
-    def test_get_contents(self, api):
+    def test_get_content(self, api):
         """Recorded API transaction using betamax. Depends on Jive state"""
-        res = api.get_contents('1660403')
+        res = api.get_content('1660403')
         assert res['entityType'] == 'document'
         assert res['author']['id'] == AUTHOR_ID
         assert res['tags'] == ['document', 'example']
@@ -184,10 +184,10 @@ class TestGetContents(object):
         assert res['attachments'] == []
         assert res['type'] == 'document'
 
-    def test_get_contents_404(self, api):
+    def test_get_content_404(self, api):
         """Recorded API transaction using betamax. Depends on Jive state"""
         with pytest.raises(RequestFailedException) as excinfo:
-            api.get_contents('99999999')
+            api.get_content('99999999')
         assert excinfo.value.response.url == 'https://sandbox.jiveon.com/' \
                                              'api/core/v3/contents/99999999'
         assert excinfo.value.response.status_code == 404

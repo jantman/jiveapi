@@ -151,7 +151,7 @@ class JiveApi(object):
         """Escape a query string for Jive's god-awful API queries"""
         return re.sub(r'(,|\(|\)|\\)', lambda m: '\%s' % m.group(), s)
 
-    def get_contents(self, content_id):
+    def get_content(self, content_id):
         """
         Given the content ID of a content object in Jive, return the API (dict)
         representation of that content object.
@@ -163,7 +163,7 @@ class JiveApi(object):
         """
         return self._get('core/v3/contents/%s' % content_id)
 
-    def create_contents(self, contents):
+    def create_content(self, contents):
         """
         POST to create a new Content object in Jive. This is the low-level
         direct API call that corresponds to `Create contents <https://developers
@@ -214,7 +214,7 @@ class JiveApi(object):
                 'text': body
             }
         }
-        return self.create_contents(content)
+        return self.create_content(content)
 
     def upload_content(self, contents, uploads):
         """
