@@ -1,0 +1,97 @@
+{
+  "http_interactions": [
+    {
+      "recorded_at": "2018-03-30T19:44:53",
+      "request": {
+        "body": {
+          "encoding": "utf-8",
+          "string": "{\"type\": \"document\", \"subject\": \"Test Html Simple\", \"content\": {\"type\": \"text/html\", \"text\": \"<body><p>TestCreateContents.test_html_simple()</p></body>\"}}"
+        },
+        "headers": {
+          "Accept": [
+            "*/*"
+          ],
+          "Accept-Encoding": [
+            "identity"
+          ],
+          "Authorization": [
+            "Basic <JIVE-AUTH>"
+          ],
+          "Connection": [
+            "keep-alive"
+          ],
+          "Content-Length": [
+            "154"
+          ],
+          "Content-Type": [
+            "application/json"
+          ],
+          "User-Agent": [
+            "python-requests/2.18.4"
+          ]
+        },
+        "method": "POST",
+        "uri": "https://<JIVE-HOST>/api/core/v3/contents"
+      },
+      "response": {
+        "body": {
+          "encoding": null,
+          "string": "{\n  \"error\" : {\n    \"message\" : \"A document with the same title already exists in this place\",\n    \"status\" : 409\n  }\n}"
+        },
+        "headers": {
+          "Cache-Control": [
+            "no-store, no-cache, must-revalidate, private, max-age=0"
+          ],
+          "Connection": [
+            "close"
+          ],
+          "Content-Type": [
+            "application/json"
+          ],
+          "Date": [
+            "Fri, 30 Mar 2018 19:44:53 GMT"
+          ],
+          "Expires": [
+            "Fri, 30 Mar 2018 19:44:52 GMT"
+          ],
+          "P3P": [
+            "CP=\"CAO PSA OUR\""
+          ],
+          "Server": [
+            "Apache"
+          ],
+          "Set-Cookie": [
+            "jive.login.ts=1522439092111; Path=/; Secure; HttpOnly;HttpOnly",
+            "jive.user.loggedIn=true; Path=/; Secure; HttpOnly;HttpOnly",
+            "jive.server.info=\"serverName=<JIVE-HOST>:serverPort=443:contextPath=:localName=localhost:localPort=9200:localAddr=127.0.0.1\"; Version=1; Path=/; Secure; HttpOnly;HttpOnly",
+            "BIGipServerpool_<JIVE-HOST>=109358602.20480.0000; path=/"
+          ],
+          "Vary": [
+            "Accept-Encoding"
+          ],
+          "X-Frame-Options": [
+            "SAMEORIGIN"
+          ],
+          "X-JIVE-USER-ID": [
+            "8627"
+          ],
+          "X-JSL": [
+            "D=1201487 t=1522439092110356"
+          ],
+          "X-Jive-Flow-Id": [
+            "d04781f1-3452-11e8-9d50-005056a42896"
+          ],
+          "X-Jive-Request-Id": [
+            "d04781f0-3452-11e8-9d50-005056a42896"
+          ]
+        },
+        "status": {
+          "code": 409,
+          "message": "Conflict"
+        },
+        "url": "https://<JIVE-HOST>/api/core/v3/contents"
+      }
+    }
+  ],
+  "recorded_with": "betamax/0.8.1"
+}

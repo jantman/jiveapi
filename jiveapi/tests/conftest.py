@@ -125,7 +125,7 @@ def api_and_betamax(request, jive_domain, jive_host):
     # Workaround for https://github.com/betamaxpy/betamax/issues/124
     # where secrets aren't stripped from gzipped responses. Fix is to tell the
     # server that we can't accept gzip.
-    api._requests.headers.update({'accept-encoding': 'identity'})
+    api._requests.headers.update({'Accept-Encoding': 'identity'})
     bmax = betamax.Betamax(api._requests)
     bmax.use_cassette(cass_name)
     bmax.start()

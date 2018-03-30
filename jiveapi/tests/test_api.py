@@ -35,12 +35,25 @@ Jason Antman <jason@jasonantman.com> <http://www.jasonantman.com>
 ##################################################################################
 """
 
+import pytest
+
+from jiveapi.exceptions import ContentConflictException, RequestFailedException
+
+# TEST CONSTANTS - These are specific to the user running the tests when
+# new data is recorded
+
+#: The Jive person/user ID of our test user
+AUTHOR_ID = '8627'
+
+# END TEST CONSTANTS
+
 pbm = 'jiveapi.utils'
 
 
 class TestUser(object):
 
     def test_user_self_svc_acct(self, api):
+        """Recorded API transaction using betamax"""
         res = api.user()
         assert res['jive']['federated'] is True
         assert res['jive']['status'] == 'registered'
@@ -53,6 +66,7 @@ class TestUser(object):
 class TestVersion(object):
 
     def test_version(self, api, jive_host, jive_scheme):
+        """Recorded API transaction using betamax"""
         res = api.api_version()
         assert res == {
             'instanceURL': '%s://%s' % (jive_scheme, jive_host),
@@ -78,3 +92,104 @@ class TestVersion(object):
             },
             'jiveVersion': '2016.3.8.1'
         }
+
+
+class TestCreateContents(object):
+
+    def test_create_contents_exception(self, api):
+        """
+        Recorded API transaction using betamax. Depends on Jive state.
+        """
+        content = {
+            'type': 'document',
+            'subject': 'Test Html Simple',
+            'content': {
+                'type': 'text/html',
+                'text': '<body><p>TestCreateContents.test_html_simple()'
+                        '</p></body>'
+            }
+        }
+        with pytest.raises(ContentConflictException) as excinfo:
+            api.create_contents(content)
+        assert excinfo.value.response.url == 'https://sandbox.jiveon.com/' \
+                                             'api/core/v3/contents'
+        assert excinfo.value.response.status_code == 409
+        assert excinfo.value.response.reason == 'Conflict'
+        msg = 'A document with the same title already exists in this place'
+        assert excinfo.value.error_message == msg
+
+    def test_create_contents(self, api):
+        """Recorded API transaction using betamax."""
+        content = {
+            'type': 'document',
+            'subject': 'Yet Another HTML Test',
+            'content': {
+                'type': 'text/html',
+                'text': '<body><p>TestCreateContents.test_create_contents()'
+                        '</p></body>'
+            }
+        }
+        res = api.create_contents(content)
+        assert isinstance(res, type({}))
+        assert res['entityType'] == 'document'
+        assert res['author']['id'] == AUTHOR_ID
+        assert res['content']['editable'] is False
+        assert res['content']['type'] == 'text/html'
+        assert res['content']['text'].startswith('<body>')
+        assert '<p>TestCreateContents.test_create_contents()' \
+               '</p>' in res['content']['text']
+        assert res['content']['text'].endswith('</body>')
+        assert res['contentID'] == '1660405'
+        assert res['status'] == 'published'
+        assert res['subject'] == 'Yet Another HTML Test'
+        assert res['authors'][0]['id'] == AUTHOR_ID
+        assert res['visibility'] == 'all'
+        assert res['authorship'] == 'author'
+        assert res['categories'] == []
+        assert res['parentVisible'] is True
+        assert res['parentContentVisible'] is True
+        assert res['restrictComments'] is False
+        assert res['editDisabled'] is False
+        assert res['version'] == 1
+        assert res['attachments'] == []
+        assert res['type'] == 'document'
+
+
+class TestGetContents(object):
+
+    def test_get_contents(self, api):
+        """Recorded API transaction using betamax. Depends on Jive state"""
+        res = api.get_contents('1660403')
+        assert res['entityType'] == 'document'
+        assert res['author']['id'] == AUTHOR_ID
+        assert res['tags'] == ['document', 'example']
+        assert res['content']['editable'] is False
+        assert res['content']['type'] == 'text/html'
+        assert res['content']['text'].startswith('<body>')
+        assert 'his is the body of some <strong>document</strong>' \
+               ' that I created via the web UI. It is public to the entire ' \
+               'instance.</p>' in res['content']['text']
+        assert res['content']['text'].endswith('</body>')
+        assert res['status'] == 'published'
+        assert res['subject'] == 'Some Public Document'
+        assert res['authors'][0]['id'] == AUTHOR_ID
+        assert res['visibility'] == 'all'
+        assert res['authorship'] == 'author'
+        assert res['categories'] == []
+        assert res['parentVisible'] is True
+        assert res['parentContentVisible'] is True
+        assert res['restrictComments'] is False
+        assert res['editDisabled'] is False
+        assert res['version'] == 1
+        assert res['attachments'] == []
+        assert res['type'] == 'document'
+
+    def test_get_contents_404(self, api):
+        """Recorded API transaction using betamax. Depends on Jive state"""
+        with pytest.raises(RequestFailedException) as excinfo:
+            api.get_contents('99999999')
+        assert excinfo.value.response.url == 'https://sandbox.jiveon.com/' \
+                                             'api/core/v3/contents/99999999'
+        assert excinfo.value.response.status_code == 404
+        assert excinfo.value.response.reason == 'Not Found'
+        assert excinfo.value.error_message == 'Missing content ID 99999999'

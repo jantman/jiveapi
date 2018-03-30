@@ -45,7 +45,7 @@ from jiveapi.version import PROJECT_URL, VERSION
 
 logger = logging.getLogger(__name__)
 
-for lname in ['requests', 'urllib', 'urllib3']:
+for lname in ['requests', 'urllib', 'urllib3', 'chardet']:
     l = logging.getLogger(lname)
     l.setLevel(logging.WARNING)
     l.propagate = True
@@ -57,6 +57,7 @@ class JiveApiCli(object):
         self._api = JiveApi(base_url, username, password)
 
     def show_user_info(self):
+        """Get and print information about the currently authenticated user"""
         user = self._api.user()
         username = user.get('jive', {}).get('username', '')
         print(
@@ -74,7 +75,8 @@ class JiveApiCli(object):
             '\tThumbnail %s: %s' % (user['thumbnailId'], user['thumbnailUrl'])
         )
         print('\tInitial Login: %s - Updated %s' % (
-            user['initialLogin'], user['updated']
+            user.get('initialLogin', 'unknown'),
+            user.get('updated', 'unknown')
         ))
         if 'jive' in user:
             j = user['jive']
@@ -89,7 +91,18 @@ class JiveApiCli(object):
             )
 
     def show_version(self):
+        """Print the API's /version endpoint response"""
         print(prettyjson(self._api.api_version()))
+
+    def upsert_html_doc(self, subject, html_path, _id=None):
+        with open(html_path, 'r') as fh:
+            body = fh.read()
+        if _id is None:
+            res = self._api.create_html_document(subject, body)
+            print('Created Document with ID: %s' % res['contentID'])
+            print(prettyjson(res))
+            return
+        raise NotImplementedError('Update Document')
 
 
 def parse_args():
@@ -129,6 +142,25 @@ def parse_args():
     )
     ver.set_defaults(action='version')
 
+    # HTML Document
+    htmldoc = subp.add_parser(
+        'htmldoc', help='Create or Update a HTML Document (without attachments)'
+    )
+    htmldoc.set_defaults(action='htmldoc')
+    htmldoc.add_argument(
+        '-i', '--id', dest='id', action='store', type=str, default=None,
+        help='Document ID for editing a Document. If omitted, will '
+             'create a new Document.'
+    )
+    htmldoc.add_argument(
+        'SUBJECT', action='store', type=str, help='Subject for the Document'
+    )
+    htmldoc.add_argument(
+        'FILE_PATH', action='store', type=str,
+        help='Path to file containing HTML to upload. See documentation for '
+             'formatting information.'
+    )
+
     args = p.parse_args()
     if args.baseurl is None:
         args.baseurl = os.environ.get('JIVE_URL', None)
@@ -141,7 +173,7 @@ def parse_args():
 
 def main():
     """
-    Main entry point - instantiate and run :py:class:`~.OfxBackfiller`.
+    Main entry point.
     """
     global logger
     format = "[%(asctime)s %(levelname)s] %(message)s"
@@ -161,6 +193,8 @@ def main():
         cli.show_user_info()
     elif args.action == 'version':
         cli.show_version()
+    elif args.action == 'htmldoc':
+        cli.upsert_html_doc(args.SUBJECT, args.FILE_PATH, args.id)
     else:
         logger.error('ERROR: Unknown or unspecified action.')
         raise SystemExit(1)
