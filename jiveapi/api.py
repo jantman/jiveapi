@@ -127,6 +127,30 @@ class JiveApi(object):
             raise RequestFailedException(res)
         return res.json()
 
+    def _put_json(self, path, data):
+        """
+        Execute a PUT request against the Jive API, sending JSON.
+
+        :param path: path or full URL to PUT to
+        :type path: str
+        :param data: Data to POST.
+        :type data: ``dict`` or ``list``
+        :return: deserialized response JSON. Usually dict or list.
+        """
+        if path.startswith('http://') or path.startswith('https://'):
+            # likely a pagination link
+            url = path
+        else:
+            url = urljoin(self._base_url, path)
+        logger.debug('PUT to %s (length %d)', url, len(json.dumps(data)))
+        res = self._requests.put(url, json=data)
+        logger.debug(
+            'PUT %s returned %d %s', url, res.status_code, res.reason
+        )
+        if res.status_code > 299:
+            raise RequestFailedException(res)
+        return res.json()
+
     def user(self, id_number='@me'):
         """
         Return dict of information about the specified user.
@@ -154,7 +178,10 @@ class JiveApi(object):
     def get_content(self, content_id):
         """
         Given the content ID of a content object in Jive, return the API (dict)
-        representation of that content object.
+        representation of that content object. This is the low-level direct API
+        call that corresponds to `Get Content <https://developers.jivesoftware.
+        com/api/v3/cloud/rest/ContentService.html#getContent%28String%2C%20Strin
+        g%2C%20boolean%2C%20List%3CString%3E)>`_.
 
         :param content_id: the Jive contentID of the content
         :type content_id: str
@@ -166,7 +193,7 @@ class JiveApi(object):
     def create_content(self, contents):
         """
         POST to create a new Content object in Jive. This is the low-level
-        direct API call that corresponds to `Create contents <https://developers
+        direct API call that corresponds to `Create content <https://developers
         .jivesoftware.com/api/v3/cloud/rest/ContentService.html#createContent%28
         String%2C%20String%2C%20String%2C%20String%29>`_. Please see
         the more specific wrapper methods if they suit your purposes.
@@ -177,7 +204,7 @@ class JiveApi(object):
         :return: API response of Content object
         :rtype: dict
         """
-        logger.debug('Creating contents...')
+        logger.debug('Creating content...')
         try:
             res = self._post_json(
                 'core/v3/contents', contents
@@ -186,7 +213,9 @@ class JiveApi(object):
             if ex.status_code == 409:
                 raise ContentConflictException(ex.response)
             raise
-        logger.debug('Created contents with ID %s', res.get('id', 'unknown'))
+        logger.debug(
+            'Created content with ID %s', res.get('contentID', 'unknown')
+        )
         return res
 
     def create_html_document(self, subject, body):
@@ -220,7 +249,7 @@ class JiveApi(object):
         """
         POST to create a new Content object in Jive with (binary) attachments.
         This is the low-level direct API call that corresponds to `Upload
-        Contents <https://developers.jivesoftware.com/api/v3/cloud/rest/Content
+        Content <https://developers.jivesoftware.com/api/v3/cloud/rest/Content
         Service.html#createContent%28MultipartBody%2C%20String%2C%20String%2C%20
         String%29>`_. Please see the more specific wrapper methods if they
         suit your purposes.
@@ -231,3 +260,34 @@ class JiveApi(object):
         :rtype:
         """
         raise NotImplementedError('')
+
+    def update_content(self, content_id, contents):
+        """
+        PUT to update an existing Content object in Jive. This is the low-level
+        direct API call that corresponds to `Update content <https://developers.
+        jivesoftware.com/api/v3/cloud/rest/ContentService.html#updateContent%28
+        String%2C%20String%2C%20String%2C%20boolean%2C%20String%2C%20boolean
+        %29>`_. Please see the more specific wrapper methods if they suit your
+        purposes.
+
+        :param content_id: The Jive contentID of the content to update.
+        :type content_id: str
+        :param contents: A JSON-serializable Jive content representation,
+          suitable for POSTing to the ``/contents`` API endpoint.
+        :type contents: dict
+        :return: API response of Content object
+        :rtype: dict
+        """
+        logger.debug('Updating content with contentID %s', content_id)
+        try:
+            res = self._put_json(
+                'core/v3/contents/%s' % content_id, contents
+            )
+        except RequestFailedException as ex:
+            if ex.status_code == 409:
+                raise ContentConflictException(ex.response)
+            raise
+        logger.debug(
+            'Updated content with ID %s', res.get('contentID', 'unknown')
+        )
+        return res

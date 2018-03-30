@@ -193,3 +193,59 @@ class TestGetContent(object):
         assert excinfo.value.response.status_code == 404
         assert excinfo.value.response.reason == 'Not Found'
         assert excinfo.value.error_message == 'Missing content ID 99999999'
+
+
+class TestUpdateContent(object):
+
+    def test_update_content(self, api):
+        """Recorded API transaction using betamax. Depends on Jive state"""
+        content = {
+            'type': 'document',
+            'subject': 'Some Public Document Edited',
+            'content': {
+                'type': 'text/html',
+                'text': '<body><p>This is my now-edited body.</p></body>'
+            },
+            'tags': ['document']
+        }
+        res = api.update_content('1660403', content)
+        assert res['entityType'] == 'document'
+        assert res['author']['id'] == AUTHOR_ID
+        assert res['tags'] == ['document']
+        assert res['content']['editable'] is False
+        assert res['content']['type'] == 'text/html'
+        assert res['content']['text'].startswith('<body>')
+        assert '<p>This is my now-edited body.</p>' in res['content']['text']
+        assert res['content']['text'].endswith('</body>')
+        assert res['status'] == 'published'
+        assert res['subject'] == 'Some Public Document Edited'
+        assert res['authors'][0]['id'] == AUTHOR_ID
+        assert res['visibility'] == 'all'
+        assert res['authorship'] == 'author'
+        assert res['categories'] == []
+        assert res['parentVisible'] is True
+        assert res['parentContentVisible'] is True
+        assert res['restrictComments'] is False
+        assert res['editDisabled'] is False
+        assert res['version'] == 2
+        assert res['attachments'] == []
+        assert res['type'] == 'document'
+
+    def test_update_content_404(self, api):
+        """Recorded API transaction using betamax. Depends on Jive state"""
+        content = {
+            'type': 'document',
+            'subject': 'Some Public Document Edited',
+            'content': {
+                'type': 'text/html',
+                'text': '<body><p>This is my now-edited body.</p></body>'
+            },
+            'tags': ['document']
+        }
+        with pytest.raises(RequestFailedException) as excinfo:
+            api.update_content('99999999', content)
+        assert excinfo.value.response.url == 'https://sandbox.jiveon.com/' \
+                                             'api/core/v3/contents/99999999'
+        assert excinfo.value.response.status_code == 404
+        assert excinfo.value.response.reason == 'Not Found'
+        assert excinfo.value.error_message == 'Missing content ID 99999999'
