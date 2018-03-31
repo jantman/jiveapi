@@ -18,8 +18,7 @@ Supported Actions
   * Get information on currently-authenticated user
   * Get API version information
   * `Get <https://developers.jivesoftware.com/api/v3/cloud/rest/ContentService.html#getContent%28String%2C%20String%2C%20boolean%2C%20List%3CString%3E>`_, `Create <https://developers.jivesoftware.com/api/v3/cloud/rest/ContentService.html#createContent%28String%2C%20String%2C%20String%2C%20String%29>`_, and `Update <https://developers.jivesoftware.com/api/v3/cloud/rest/ContentService.html#updateContent%28String%2C%20String%2C%20String%2C%20boolean%2C%20String%2C%20boolean%29>`_ `Content <https://developers.jivesoftware.com/api/v3/cloud/rest/ContentService.html>`_ (i.e. `Documents <https://developers.jivesoftware.com/api/v3/cloud/rest/DocumentEntity.html>`_, `Posts <https://developers.jivesoftware.com/api/v3/cloud/rest/PostEntity.html>`_, etc.) in Jive from Python dictionary equivalents of the native Jive API `types <https://developers.jivesoftware.com/api/v3/cloud/rest/index.html>`_.
-  * *Not yet implemented:* `Get binary Image data <https://developers.jivesoftware.com/api/v3/cloud/rest/ImageService.html#getImage%28String%2C%20String%2C%20String%2C%20String%2C%20String%29>`_ and `Create <https://developers.jivesoftware.com/api/v3/cloud/rest/ImageService.html#uploadImage%28MultipartBody%29>`_ `Images <https://developers.jivesoftware.com/api/v3/cloud/rest/ImageEntity.html>`_ that can be embedded in Content (i.e. Documents and Posts).
-  * *Not yet implemented:* Get the client-facing (i.e. for use in HTML) URL for an Image.
+  * `Get binary Image data <https://developers.jivesoftware.com/api/v3/cloud/rest/ImageService.html#getImage%28String%2C%20String%2C%20String%2C%20String%2C%20String%29>`_ and `Create <https://developers.jivesoftware.com/api/v3/cloud/rest/ImageService.html#uploadImage%28MultipartBody%29>`_ `Images <https://developers.jivesoftware.com/api/v3/cloud/rest/ImageEntity.html>`_ that can be embedded in Content (i.e. Documents and Posts).
   * *Not yet implemented:* Backdate Content items when creating or updating them.
   * *Not yet implemented:* Upload the above Content types to a Place (i.e. Space, Blog, Group, etc.)
 
@@ -28,6 +27,9 @@ Supported Actions
   * *Not Yet Implemented:* Create and Update HTML Documents or Posts given HTML content and some parameters, including most of the common parameters for the place to post in, visibility, published/draft status, and keywords.
   * *Not Yet Implemented:* Modify HTML formatting to use Jive UI conventions ("jive-ize" HTML).
   * *Not Yet Implemented:* Given a HTML string that contains image tags referring to local images and the filesystem path containing the images, upload each of them to Jive and return the HTML with image paths replaced with their Jive URLs.
+  * *Not yet Implemented:* A way to update content that includes embedded Images without updating the images. It doesn't appear that the Jive API returns a checksum for images, but maybe there's a way to get it to?
+  * *Not yet implemented:* Option to modify HTML to insert Jive-style information/notice boxes as header and footer, such as information reminding users not to edit the document directly on Jive and giving links to the canonical source, commit, and build that last generated the content.
+  * *Not yet implemented:* Uploading "editable" Content that includes Jive macros, such as information boxes and table of contents.
 
 Requirements
 ------------
