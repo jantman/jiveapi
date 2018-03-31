@@ -3,26 +3,31 @@ python-jive-api
 
 Simple and limited Python client for `Jive <https://www.jivesoftware.com/>`_ collaboration software `ReST API v3 <https://developers.jivesoftware.com/api/v3/cloud/rest/index.html>`_.
 
-Scope
------
+Scope and Status
+----------------
 
 I'm writing this to be a working Python wrapper around a small portion of the Jive ReST API - specifically, uploading/publishing blog posts ("Posts" API data type) and uploading/updating Documents. I'm doing this in my personal time, but we'll be using the project at work for a very limited requirement: "syndicating" documentation that we publish on internal web servers to our corporate Jive instance. I don't plan on adding support beyond what's required for that, but contributions are welcome.
 
-Status / Supported Actions
-++++++++++++++++++++++++++
+For the time being, this should be considered Alpha-quality software. It's young and likely only has a handful of code paths exercised on a regular basis, and from what I've seen in practice and in the documentation, I can only assume that Jive has many error conditions this software has yet to see. In short, for the time being, make sure you sanity check things or don't rely on this working 100% of the time. Bug reports are very welcome, but please be sure to include full debugging output.
+
+Supported Actions
++++++++++++++++++
 
 * Low-level API (direct interface to Jive API calls)
 
   * Get information on currently-authenticated user
   * Get API version information
   * `Get <https://developers.jivesoftware.com/api/v3/cloud/rest/ContentService.html#getContent%28String%2C%20String%2C%20boolean%2C%20List%3CString%3E>`_, `Create <https://developers.jivesoftware.com/api/v3/cloud/rest/ContentService.html#createContent%28String%2C%20String%2C%20String%2C%20String%29>`_, and `Update <https://developers.jivesoftware.com/api/v3/cloud/rest/ContentService.html#updateContent%28String%2C%20String%2C%20String%2C%20boolean%2C%20String%2C%20boolean%29>`_ `Content <https://developers.jivesoftware.com/api/v3/cloud/rest/ContentService.html>`_ (i.e. `Documents <https://developers.jivesoftware.com/api/v3/cloud/rest/DocumentEntity.html>`_, `Posts <https://developers.jivesoftware.com/api/v3/cloud/rest/PostEntity.html>`_, etc.) in Jive from Python dictionary equivalents of the native Jive API `types <https://developers.jivesoftware.com/api/v3/cloud/rest/index.html>`_.
-  * *Not yet implemented:* Get, Create, and Update Attachments.
-  * *Not yet implemented:* Get, Create, and Update Content with embedded attachments such as images.
+  * *Not yet implemented:* `Get binary Image data <https://developers.jivesoftware.com/api/v3/cloud/rest/ImageService.html#getImage%28String%2C%20String%2C%20String%2C%20String%2C%20String%29>`_ and `Create <https://developers.jivesoftware.com/api/v3/cloud/rest/ImageService.html#uploadImage%28MultipartBody%29>`_ `Images <https://developers.jivesoftware.com/api/v3/cloud/rest/ImageEntity.html>`_ that can be embedded in Content (i.e. Documents and Posts).
+  * *Not yet implemented:* Get the client-facing (i.e. for use in HTML) URL for an Image.
+  * *Not yet implemented:* Backdate Content items when creating or updating them.
+  * *Not yet implemented:* Upload the above Content types to a Place (i.e. Space, Blog, Group, etc.)
 
 * High-level wrapper API (provides assistance with generating parameters and massaging content):
 
-  * *Not Yet Implemented:* Create and Update HTML Documents given content and some parameters, and optionally with attachments and/or inline images.
-  * *Not Yet Implemented:* Create and Update HTML Posts given content and some parameters, and optionally with attachments and/or inline images.
+  * *Not Yet Implemented:* Create and Update HTML Documents or Posts given HTML content and some parameters, including most of the common parameters for the place to post in, visibility, published/draft status, and keywords.
+  * *Not Yet Implemented:* Modify HTML formatting to use Jive UI conventions ("jive-ize" HTML).
+  * *Not Yet Implemented:* Given a HTML string that contains image tags referring to local images and the filesystem path containing the images, upload each of them to Jive and return the HTML with image paths replaced with their Jive URLs.
 
 Requirements
 ------------
