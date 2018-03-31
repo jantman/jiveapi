@@ -3,16 +3,26 @@ python-jive-api
 
 Simple and limited Python client for `Jive <https://www.jivesoftware.com/>`_ collaboration software `ReST API v3 <https://developers.jivesoftware.com/api/v3/cloud/rest/index.html>`_.
 
-Status and Limitations
-----------------------
+Scope
+-----
 
 I'm writing this to be a working Python wrapper around a small portion of the Jive ReST API - specifically, uploading/publishing blog posts ("Posts" API data type) and uploading/updating Documents. I'm doing this in my personal time, but we'll be using the project at work for a very limited requirement: "syndicating" documentation that we publish on internal web servers to our corporate Jive instance. I don't plan on adding support beyond what's required for that, but contributions are welcome.
 
-Supported Actions
-+++++++++++++++++
+Status / Supported Actions
+++++++++++++++++++++++++++
 
-* Get information on currently-authenticated user
-* Get API version information
+* Low-level API (direct interface to Jive API calls)
+
+  * Get information on currently-authenticated user
+  * Get API version information
+  * `Get <https://developers.jivesoftware.com/api/v3/cloud/rest/ContentService.html#getContent%28String%2C%20String%2C%20boolean%2C%20List%3CString%3E>`_, `Create <https://developers.jivesoftware.com/api/v3/cloud/rest/ContentService.html#createContent%28String%2C%20String%2C%20String%2C%20String%29>`_, and `Update <https://developers.jivesoftware.com/api/v3/cloud/rest/ContentService.html#updateContent%28String%2C%20String%2C%20String%2C%20boolean%2C%20String%2C%20boolean%29>`_ `Content <https://developers.jivesoftware.com/api/v3/cloud/rest/ContentService.html>`_ (i.e. `Documents <https://developers.jivesoftware.com/api/v3/cloud/rest/DocumentEntity.html>`_, `Posts <https://developers.jivesoftware.com/api/v3/cloud/rest/PostEntity.html>`_, etc.) in Jive from Python dictionary equivalents of the native Jive API `types <https://developers.jivesoftware.com/api/v3/cloud/rest/index.html>`_.
+  * *Not yet implemented:* Get, Create, and Update Attachments.
+  * *Not yet implemented:* Get, Create, and Update Content with embedded attachments such as images.
+
+* High-level wrapper API (provides assistance with generating parameters and massaging content):
+
+  * *Not Yet Implemented:* Create and Update HTML Documents given content and some parameters, and optionally with attachments and/or inline images.
+  * *Not Yet Implemented:* Create and Update HTML Posts given content and some parameters, and optionally with attachments and/or inline images.
 
 Requirements
 ------------
