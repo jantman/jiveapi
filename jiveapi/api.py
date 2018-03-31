@@ -250,22 +250,6 @@ class JiveApi(object):
         }
         return self.create_content(content)
 
-    def upload_content(self, contents, uploads):
-        """
-        POST to create a new Content object in Jive with (binary) attachments.
-        This is the low-level direct API call that corresponds to `Upload
-        Content <https://developers.jivesoftware.com/api/v3/cloud/rest/Content
-        Service.html#createContent%28MultipartBody%2C%20String%2C%20String%2C%20
-        String%29>`_. Please see the more specific wrapper methods if they
-        suit your purposes.
-
-        :param contents:
-        :type contents:
-        :return:
-        :rtype:
-        """
-        raise NotImplementedError('')
-
     def update_content(self, content_id, contents):
         """
         PUT to update an existing Content object in Jive. This is the low-level
@@ -274,6 +258,10 @@ class JiveApi(object):
         String%2C%20String%2C%20String%2C%20boolean%2C%20String%2C%20boolean
         %29>`_. Please see the more specific wrapper methods if they suit your
         purposes.
+
+        **Warning:** In current Jive versions, it appears that editing/updating
+        a (blog) Post will change the date-based URL to the post, breaking all
+        existing links to it!
 
         :param content_id: The Jive contentID of the content to update.
         :type content_id: str
@@ -296,3 +284,119 @@ class JiveApi(object):
             'Updated content with ID %s', res.get('contentID', 'unknown')
         )
         return res
+
+    def get_image(self, image_id):
+        """
+        GET the image specified by ``image_id`` as binary content. This method
+        currently can only retrieve the exact original image. This is the
+        low-level direct API call that corresponds to `Get Image <https://devel
+        opers.jivesoftware.com/api/v3/cloud/rest/ImageService.html#getImage%28S
+        tring%2C%20String%2C%20String%2C%20String%2C%20String%29>`_.
+
+        :param image_id: Jive Image ID to get. This can be found in a Content
+        (i.e. Document or Post) object's ``contentImages`` list.
+        :type image_id: str
+        :return: binary content of Image
+        :rtype: bytes
+        """
+        # Testing Note: betamax==0.8.1 and/or betamax-serializers==0.2.0 cannot
+        # handle testing the binary response content from this method.
+        url = urljoin(self._base_url, 'core/v3/images/%s' % image_id)
+        logger.debug('GET (binary) %s', url)
+        res = self._requests.get(url)
+        logger.debug(
+            'GET %s returned %d %s (%d bytes)', url, res.status_code,
+            res.reason, len(res.content)
+        )
+        if res.status_code > 299:
+            raise RequestFailedException(res)
+        return res.content
+
+    def upload_image(self, img_data, img_filename, content_type):
+        """
+        Upload a new Image resource to be stored on the server as a temporary
+        image, i.e. for embedding in an upcoming Document, Post, etc. Returns
+        Image object and the user-facing URI for the image itself, i.e.
+        ``https://sandbox.jiveon.com/api/core/v3/images/601174?a=1522503578891``
+
+        **Note:** Python's ``requests`` lacks streaming file support. As such,
+        images sent using this method will be entirely read into memory and then
+        sent. This may not work very well for extremely large images.
+
+        **Warning:** As far as I can tell, the user-visible URI to an image
+        can *only* be retrieved when the image is uploaded. There does not seem
+        to be a way to get it from the API for an existing image.
+
+        :param img_data: The binary image data.
+        :type img_data: bytes
+        :param img_filename: The filename for the image. This is purely for
+          display purposes.
+        :type img_filename: str
+        :param content_type: The MIME Content Type for the image data.
+        :type content_type: str
+        :return: 2-tuple of (string user-facing URI to the image i.e. for use
+          in HTML, dict Image object representation)
+        :rtype: tuple
+        """
+        # Testing Note: betamax==0.8.1 and/or betamax-serializers==0.2.0 cannot
+        # handle testing the binary response content from this method.
+        url = urljoin(self._base_url, 'core/v3/images')
+        files = {
+            'file': (img_filename, img_data, content_type)
+        }
+        logger.debug('POST to %s (length %d)', url, len(img_data))
+        res = self._requests.post(url, files=files, allow_redirects=False)
+        logger.debug(
+            'POST %s returned %d %s', url, res.status_code, res.reason
+        )
+        if res.status_code != 201:
+            raise RequestFailedException(res)
+        logger.debug(
+            'Uploaded image with Location: %s', res.headers['Location']
+        )
+        return res.headers['Location'], res.text
+
+
+"""
+## Document with embedded images GET example:
+
+  "content" : {
+    "text" : "<body><!-- [DocumentBodyStart:1693a4b1-d031-49cf-89f0-c768af9badbd] --><div class=\"jive-rendered-content\"><p>This is one image&#160;<a href=\"https://<JIVE-HOST>/servlet/JiveServlet/showImage/102-181245-3-601173/20x20.png\"><img alt=\"image description 20x20\" class=\"image-2 jive-image j-img-original\" height=\"20\" src=\"https://<JIVE-HOST>/servlet/JiveServlet/downloadImage/102-181245-3-601173/20x20.png\" style=\"height: auto;\" width=\"20\"/></a> and this is another:&#160;<a href=\"https://<JIVE-HOST>/servlet/JiveServlet/showImage/102-181245-3-601172/25x25.png\"><img alt=\"image description 25x25\" class=\"image-1 jive-image j-img-original\" height=\"25\" src=\"https://<JIVE-HOST>/servlet/JiveServlet/downloadImage/102-181245-3-601172/25x25.png\" style=\"height: auto;\" width=\"25\"/></a></p></div><!-- [DocumentBodyEnd:1693a4b1-d031-49cf-89f0-c768af9badbd] --></body>",
+    "editable" : false,
+    "type" : "text/html"
+  },
+  "contentImages" : [ {
+    "id" : "601172",
+    "ref" : "https://<JIVE-HOST>/api/core/v3/images/601172?a=1522455592480",
+    "size" : 167,
+    "width" : 25,
+    "height" : 25,
+    "type" : "image",
+    "typeCode" : 111
+  }, {
+    "id" : "601173",
+    "ref" : "https://<JIVE-HOST>/api/core/v3/images/601173?a=1522455592433",
+    "size" : 165,
+    "width" : 20,
+    "height" : 20,
+    "type" : "image",
+    "typeCode" : 111
+  } ],
+  "attachments" : [ ],
+
+## Adding Embedded Images to Content:
+https://community.jivesoftware.com/docs/DOC-233174#jive_content_id_Adding_Embedded_Images_to_a_Piece_of_Content
+
+1. Upload Image (POST multipart/form-data) See: Images Service
+2. Read Location HTTP Header for API URI for Image
+3. Add HTML Markup in Content Body using the new API URI for the Image, see: Contents Service > Update Content
+  * May find value in the Contents Service > Update Editable Content if you want to leverage RTE macros.
+    * Note the documentation callout : The input JSON must include a true value in content.editable if the content body is using RTE macros.
+
+## Stuff about Editable Content and RTE Macros
+https://developers.jivesoftware.com/api/v3/cloud/rest/ContentService.html#updateEditableContent(String, String, boolean, boolean, String)
+
+## Performance Note:
+see https://community.jivesoftware.com/docs/DOC-233174#jive_content_id_Suppressing_Fields_from_API_Responses
+
+"""
