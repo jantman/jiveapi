@@ -189,7 +189,8 @@ class TestGetContent(object):
         with pytest.raises(RequestFailedException) as excinfo:
             api.get_content('99999999')
         assert excinfo.value.response.url == 'https://sandbox.jiveon.com/' \
-                                             'api/core/v3/contents/99999999'
+                                             'api/core/v3/contents/99999999?' \
+                                             'directive=silent'
         assert excinfo.value.response.status_code == 404
         assert excinfo.value.response.reason == 'Not Found'
         assert excinfo.value.error_message == 'Missing content ID 99999999'

@@ -183,12 +183,17 @@ class JiveApi(object):
         com/api/v3/cloud/rest/ContentService.html#getContent%28String%2C%20Strin
         g%2C%20boolean%2C%20List%3CString%3E)>`_.
 
+        This GETs content with the "Silent Directive" that prevents Jive read
+        counts from being incremented. See
+        `Silent Directive for Contents Service <https://community.jivesoftware.c
+        om/docs/DOC-233174#>`_.
+
         :param content_id: the Jive contentID of the content
         :type content_id: str
         :return: content object representation
         :rtype: dict
         """
-        return self._get('core/v3/contents/%s' % content_id)
+        return self._get('core/v3/contents/%s?directive=silent' % content_id)
 
     def create_content(self, contents):
         """

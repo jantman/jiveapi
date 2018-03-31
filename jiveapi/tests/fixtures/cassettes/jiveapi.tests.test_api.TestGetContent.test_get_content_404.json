@@ -25,7 +25,7 @@
           ]
         },
         "method": "GET",
-        "uri": "https://<JIVE-HOST>/api/core/v3/contents/99999999"
+        "uri": "https://<JIVE-HOST>/api/core/v3/contents/99999999?directive=silent"
       },
       "response": {
         "body": {
@@ -84,7 +84,7 @@
           "code": 404,
           "message": "Not Found"
         },
-        "url": "https://<JIVE-HOST>/api/core/v3/contents/99999999"
+        "url": "https://<JIVE-HOST>/api/core/v3/contents/99999999?directive=silent"
       }
     }
   ],
