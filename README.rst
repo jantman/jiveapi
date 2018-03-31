@@ -19,7 +19,7 @@ Supported Actions
   * Get API version information
   * `Get <https://developers.jivesoftware.com/api/v3/cloud/rest/ContentService.html#getContent%28String%2C%20String%2C%20boolean%2C%20List%3CString%3E>`_, `Create <https://developers.jivesoftware.com/api/v3/cloud/rest/ContentService.html#createContent%28String%2C%20String%2C%20String%2C%20String%29>`_, and `Update <https://developers.jivesoftware.com/api/v3/cloud/rest/ContentService.html#updateContent%28String%2C%20String%2C%20String%2C%20boolean%2C%20String%2C%20boolean%29>`_ `Content <https://developers.jivesoftware.com/api/v3/cloud/rest/ContentService.html>`_ (i.e. `Documents <https://developers.jivesoftware.com/api/v3/cloud/rest/DocumentEntity.html>`_, `Posts <https://developers.jivesoftware.com/api/v3/cloud/rest/PostEntity.html>`_, etc.) in Jive from Python dictionary equivalents of the native Jive API `types <https://developers.jivesoftware.com/api/v3/cloud/rest/index.html>`_.
   * `Get binary Image data <https://developers.jivesoftware.com/api/v3/cloud/rest/ImageService.html#getImage%28String%2C%20String%2C%20String%2C%20String%2C%20String%29>`_ and `Create <https://developers.jivesoftware.com/api/v3/cloud/rest/ImageService.html#uploadImage%28MultipartBody%29>`_ `Images <https://developers.jivesoftware.com/api/v3/cloud/rest/ImageEntity.html>`_ that can be embedded in Content (i.e. Documents and Posts).
-  * *Not yet implemented:* Backdate Content items when creating or updating them.
+  * Backdate Content items when creating or updating them.
   * *Not yet implemented:* Upload the above Content types to a Place (i.e. Space, Blog, Group, etc.)
 
 * High-level wrapper API (provides assistance with generating parameters and massaging content):

@@ -37,7 +37,7 @@ Jason Antman <jason@jasonantman.com> <http://www.jasonantman.com>
 
 import logging
 import requests
-from urllib.parse import urljoin
+from urllib.parse import urljoin, quote_plus
 import re
 import json
 
@@ -45,6 +45,10 @@ from jiveapi.jiveresponse import requests_hook
 from jiveapi.exceptions import RequestFailedException, ContentConflictException
 
 logger = logging.getLogger(__name__)
+
+#: API url param timestamp format, like '2012-01-31T22:46:12.044+0000'
+#: note that sub-second time is ignored and set to zero.
+TIME_FORMAT = '%Y-%m-%dT%H:%M:%S.000%z'
 
 
 class JiveApi(object):
@@ -195,7 +199,7 @@ class JiveApi(object):
         """
         return self._get('core/v3/contents/%s?directive=silent' % content_id)
 
-    def create_content(self, contents):
+    def create_content(self, contents, publish_date=None):
         """
         POST to create a new Content object in Jive. This is the low-level
         direct API call that corresponds to `Create content <https://developers
@@ -206,14 +210,22 @@ class JiveApi(object):
         :param contents: A JSON-serializable Jive content representation,
           suitable for POSTing to the ``/contents`` API endpoint.
         :type contents: dict
+        :param publish_date: A backdated publish and update date to set on the
+          content. This allows publishing content with backdated publish dates,
+          for migration purposes.
+        :type publish_date: datetime.datetime
         :return: API response of Content object
         :rtype: dict
         """
         logger.debug('Creating content...')
+        url = 'core/v3/contents'
+        if publish_date is not None:
+            dts = quote_plus(publish_date.strftime(TIME_FORMAT))
+            logger.debug('Backdating content publish to %s (%s)',
+                         publish_date, dts)
+            url += '?published=%s&updated=%s' % (dts, dts)
         try:
-            res = self._post_json(
-                'core/v3/contents', contents
-            )
+            res = self._post_json(url, contents)
         except RequestFailedException as ex:
             if ex.status_code == 409:
                 raise ContentConflictException(ex.response)
@@ -250,7 +262,7 @@ class JiveApi(object):
         }
         return self.create_content(content)
 
-    def update_content(self, content_id, contents):
+    def update_content(self, content_id, contents, update_date=None):
         """
         PUT to update an existing Content object in Jive. This is the low-level
         direct API call that corresponds to `Update content <https://developers.
@@ -268,14 +280,22 @@ class JiveApi(object):
         :param contents: A JSON-serializable Jive content representation,
           suitable for POSTing to the ``/contents`` API endpoint.
         :type contents: dict
+        :param update_date: A backdated update date to set on the content. This
+          allows publishing content with backdated publish dates, for migration
+          purposes.
+        :type update_date: datetime.datetime
         :return: API response of Content object
         :rtype: dict
         """
         logger.debug('Updating content with contentID %s', content_id)
+        url = 'core/v3/contents/%s' % content_id
+        if update_date is not None:
+            dts = quote_plus(update_date.strftime(TIME_FORMAT))
+            logger.debug('Backdating content update to %s (%s)',
+                         update_date, dts)
+            url += '?updated=%s' % dts
         try:
-            res = self._put_json(
-                'core/v3/contents/%s' % content_id, contents
-            )
+            res = self._put_json(url, contents)
         except RequestFailedException as ex:
             if ex.status_code == 409:
                 raise ContentConflictException(ex.response)
