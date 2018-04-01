@@ -24,11 +24,10 @@ Supported Actions
   * `Get <https://developers.jivesoftware.com/api/v3/cloud/rest/ContentService.html#getContent%28String%2C%20String%2C%20boolean%2C%20List%3CString%3E>`_, `Create <https://developers.jivesoftware.com/api/v3/cloud/rest/ContentService.html#createContent%28String%2C%20String%2C%20String%2C%20String%29>`_, and `Update <https://developers.jivesoftware.com/api/v3/cloud/rest/ContentService.html#updateContent%28String%2C%20String%2C%20String%2C%20boolean%2C%20String%2C%20boolean%29>`_ `Content <https://developers.jivesoftware.com/api/v3/cloud/rest/ContentService.html>`_ (i.e. `Documents <https://developers.jivesoftware.com/api/v3/cloud/rest/DocumentEntity.html>`_, `Posts <https://developers.jivesoftware.com/api/v3/cloud/rest/PostEntity.html>`_, etc.) in Jive from Python dictionary equivalents of the native Jive API `types <https://developers.jivesoftware.com/api/v3/cloud/rest/index.html>`_.
   * `Get binary Image data <https://developers.jivesoftware.com/api/v3/cloud/rest/ImageService.html#getImage%28String%2C%20String%2C%20String%2C%20String%2C%20String%29>`_ and `Create <https://developers.jivesoftware.com/api/v3/cloud/rest/ImageService.html#uploadImage%28MultipartBody%29>`_ `Images <https://developers.jivesoftware.com/api/v3/cloud/rest/ImageEntity.html>`_ that can be embedded in Content (i.e. Documents and Posts).
   * Backdate Content items when creating or updating them.
-  * *Not yet implemented:* Upload the above Content types to a Place (i.e. Space, Blog, Group, etc.)
 
 * High-level wrapper API (provides assistance with generating parameters and massaging content):
 
-  * *Not Yet Implemented:* Create and Update HTML Documents or Posts given HTML content and some parameters, including most of the common parameters for the place to post in, visibility, published/draft status, and keywords.
+  * *Not Yet Implemented:* Create and Update HTML Documents or Posts given HTML content and some parameters, including most of the common parameters such as the place to post in, visibility, published/draft status, and keywords.
   * *Not Yet Implemented:* Modify HTML formatting to use Jive UI conventions ("jive-ize" HTML).
   * *Not Yet Implemented:* Given a HTML string that contains image tags referring to local images and the filesystem path containing the images, upload each of them to Jive and return the HTML with image paths replaced with their Jive URLs.
   * *Not yet Implemented:* A way to update content that includes embedded Images without updating the images. It doesn't appear that the Jive API returns a checksum for images, but maybe there's a way to get it to?
@@ -71,15 +70,10 @@ Usage
 
 jiveapi contains two main classes, ``JiveApi`` and ``JiveContent``. The ``JiveApi`` class contains the low-level methods that map directly to Jive's API, such as creating and updating Content and Images. These methods generally require dicts (serialized to JSON objects in the API calls) that comply with the Jive API documentation for each object type. The ``JiveContent`` class wraps an instance of ``JiveApi`` and provides higher-level convenience methods for generating these API calls such as posting a string of HTML as a Document in a specific Place. ``JiveContent`` also contains static helper methods, such as for manipulating HTML to appear properly in Jive.
 
-Examples - CLI
---------------
+Examples
+--------
 
-TBD.
-
-Examples - Python
------------------
-
-See ``jiveapi/cli.py`` for more detailed examples.
+For examples of the use of the low-level methods in ``jiveapi.api.JiveApi``, see the source code of the unit tests and of the high-level ``jiveapi.content.JiveContent`` class.
 
 Jive Sandbox for Testing
 ------------------------
