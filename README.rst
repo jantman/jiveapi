@@ -1,6 +1,10 @@
 python-jive-api
 ===============
 
+.. image:: http://www.repostatus.org/badges/latest/wip.svg
+   :alt: Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.
+   :target: http://www.repostatus.org/#wip
+
 Simple and limited Python client for `Jive <https://www.jivesoftware.com/>`_ collaboration software `ReST API v3 <https://developers.jivesoftware.com/api/v3/cloud/rest/index.html>`_.
 
 Scope and Status
@@ -61,6 +65,11 @@ HTML
 ++++
 
 Jive's HTML handling is somewhat strange. First, uploaded HTML for Content (Documents, Posts, etc.) must start at the ``<body>`` tag or lower, not be a full ``<html>`` document or have a ``<head>``. In most Jive installations that I've seen, the HTML needs to be massaged a bit to look correct in Jive. This package does/will include code for that.
+
+Usage
+-----
+
+jiveapi contains two main classes, ``JiveApi`` and ``JiveContent``. The ``JiveApi`` class contains the low-level methods that map directly to Jive's API, such as creating and updating Content and Images. These methods generally require dicts (serialized to JSON objects in the API calls) that comply with the Jive API documentation for each object type. The ``JiveContent`` class wraps an instance of ``JiveApi`` and provides higher-level convenience methods for generating these API calls such as posting a string of HTML as a Document in a specific Place. ``JiveContent`` also contains static helper methods, such as for manipulating HTML to appear properly in Jive.
 
 Examples - CLI
 --------------
