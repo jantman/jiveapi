@@ -75,7 +75,7 @@ class JiveResponse(Response):
             # decoding fails, fall back to `self.text` (using chardet to make
             # a best guess).
             encoding = guess_json_utf(self.content)
-            if encoding is not None:
+            if encoding is not None:  # nocoverage
                 try:
                     content = self.content.decode(encoding)
                 except UnicodeDecodeError:

@@ -42,11 +42,12 @@ class MockResponse(object):
 
     def __init__(
         self, status_code, reason, text=None, _json=None, request=None,
-        content=None, headers={}
+        content=None, headers={}, no_text=False
     ):
         self.status_code = status_code
         self.reason = reason
-        self.text = text
+        if not no_text:
+            self.text = text
         self._json = _json
         self.request = request
         self.content = content
