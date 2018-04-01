@@ -36,18 +36,52 @@ Jason Antman <jason@jasonantman.com> <http://www.jasonantman.com>
 """
 
 import pytest
+from datetime import datetime
+from requests import Session
+from collections import namedtuple
 
 from jiveapi.exceptions import ContentConflictException, RequestFailedException
+from jiveapi.api import JiveApi
+from jiveapi.jiveresponse import requests_hook
+from jiveapi.tests.test_helpers import MockResponse, FixedOffset
+
+from unittest.mock import patch, MagicMock, call
 
 # TEST CONSTANTS - These are specific to the user running the tests when
 # new data is recorded
 
 #: The Jive person/user ID of our test user
 AUTHOR_ID = '8627'
-
 # END TEST CONSTANTS
 
-pbm = 'jiveapi.utils'
+pb = 'jiveapi.api.JiveApi'
+
+
+class TestInit(object):
+
+    def test_default_path(self):
+        mock_sess = MagicMock()
+        type(mock_sess).hooks = {'response': []}
+        with patch('jiveapi.api.requests') as mock_req:
+            mock_req.Session.return_value = mock_sess
+            cls = JiveApi('http://jive.example.com/', 'uname', 'passwd')
+        assert cls._base_url == 'http://jive.example.com/'
+        assert cls._username == 'uname'
+        assert cls._password == 'passwd'
+        assert cls._requests == mock_sess
+        assert mock_sess.hooks['response'] == [requests_hook]
+
+    def test_no_trailing_slash(self):
+        mock_sess = MagicMock()
+        type(mock_sess).hooks = {'response': []}
+        with patch('jiveapi.api.requests') as mock_req:
+            mock_req.Session.return_value = mock_sess
+            cls = JiveApi('http://jive.example.com', 'uname', 'passwd')
+        assert cls._base_url == 'http://jive.example.com/'
+        assert cls._username == 'uname'
+        assert cls._password == 'passwd'
+        assert cls._requests == mock_sess
+        assert mock_sess.hooks['response'] == [requests_hook]
 
 
 class TestUser(object):
@@ -92,6 +126,78 @@ class TestVersion(object):
             },
             'jiveVersion': '2016.3.8.1'
         }
+
+
+class TestRequestMethods(object):
+
+    def setup(self):
+        self.api = JiveApi('http://jive.example.com/', 'jiveuser', 'jivepass')
+        self.mock_sess = MagicMock(spec_set=Session)
+        self.api._requests = self.mock_sess
+
+    def test_get_http_url(self):
+        self.mock_sess.get.side_effect = [
+            MockResponse(200, 'OK', _json={
+                'links': {
+                    'next': 'http://jive.example.com/bar'
+                },
+                'list': [
+                    'one',
+                    'two'
+                ]
+            }),
+            MockResponse(200, 'OK', _json={
+                'list': [
+                    'three'
+                ]
+            })
+        ]
+        res = self.api._get('http://jive.example.com/foo', autopaginate=True)
+        assert res == ['one', 'two', 'three']
+        assert self.mock_sess.mock_calls == [
+            call.get('http://jive.example.com/foo'),
+            call.get('http://jive.example.com/bar')
+        ]
+
+    def test_post_json(self):
+        self.mock_sess.post.side_effect = [
+            MockResponse(201, 'Created', _json={
+                'list': [
+                    'three'
+                ]
+            })
+        ]
+        res = self.api._post_json(
+            'http://jive.example.com/foo', {'foo': 'bar'}
+        )
+        assert res == {
+            'list': [
+                'three'
+            ]
+        }
+        assert self.mock_sess.mock_calls == [
+            call.post('http://jive.example.com/foo', json={'foo': 'bar'})
+        ]
+
+    def test_put_json(self):
+        self.mock_sess.put.side_effect = [
+            MockResponse(201, 'Created', _json={
+                'list': [
+                    'three'
+                ]
+            })
+        ]
+        res = self.api._put_json(
+            'http://jive.example.com/foo', {'foo': 'bar'}
+        )
+        assert res == {
+            'list': [
+                'three'
+            ]
+        }
+        assert self.mock_sess.mock_calls == [
+            call.put('http://jive.example.com/foo', json={'foo': 'bar'})
+        ]
 
 
 class TestCreateContent(object):
@@ -153,6 +259,47 @@ class TestCreateContent(object):
         assert res['version'] == 1
         assert res['attachments'] == []
         assert res['type'] == 'document'
+
+    def test_publish_date(self):
+        api = JiveApi('http://jive.example.com/', 'jiveuser', 'jivepass')
+        tz = FixedOffset(-60, 'foo')
+        with patch('%s._post_json' % pb, autospec=True) as mock_post:
+            mock_post.return_value = {'return': 'value'}
+            res = api.create_content(
+                {'foo': 'bar'},
+                publish_date=datetime(2018, 2, 13, 11, 23, 52, tzinfo=tz)
+            )
+        assert res == {'return': 'value'}
+        assert mock_post.mock_calls == [
+            call(
+                api,
+                'core/v3/contents?published=2018-02-13T11%3A23%3A52.000-0100&'
+                'updated=2018-02-13T11%3A23%3A52.000-0100',
+                {'foo': 'bar'}
+            )
+        ]
+
+    def test_content_conflict(self):
+        api = JiveApi('http://jive.example.com/', 'jiveuser', 'jivepass')
+        req_t = namedtuple('MockRequest', ['method', 'url'])
+        req = req_t(method='POST', url='http://jive.example.com/')
+        with patch('%s._post_json' % pb, autospec=True) as mock_post:
+            mock_post.side_effect = RequestFailedException(
+                MockResponse(409, 'Conflict', request=req)
+            )
+            with pytest.raises(ContentConflictException):
+                api.create_content({'foo': 'bar'})
+
+    def test_500(self):
+        api = JiveApi('http://jive.example.com/', 'jiveuser', 'jivepass')
+        req_t = namedtuple('MockRequest', ['method', 'url'])
+        req = req_t(method='POST', url='http://jive.example.com/')
+        with patch('%s._post_json' % pb, autospec=True) as mock_post:
+            mock_post.side_effect = RequestFailedException(
+                MockResponse(500, 'Conflict', request=req)
+            )
+            with pytest.raises(RequestFailedException):
+                api.create_content({'foo': 'bar'})
 
 
 class TestGetContent(object):
@@ -250,3 +397,125 @@ class TestUpdateContent(object):
         assert excinfo.value.response.status_code == 404
         assert excinfo.value.response.reason == 'Not Found'
         assert excinfo.value.error_message == 'Missing content ID 99999999'
+
+    def test_update_date(self):
+        api = JiveApi('http://jive.example.com/', 'jiveuser', 'jivepass')
+        tz = FixedOffset(-60, 'foo')
+        with patch('%s._put_json' % pb, autospec=True) as mock_put:
+            mock_put.return_value = {'return': 'value'}
+            res = api.update_content(
+                'cid',
+                {'foo': 'bar'},
+                update_date=datetime(2018, 2, 13, 11, 23, 52, tzinfo=tz)
+            )
+        assert res == {'return': 'value'}
+        assert mock_put.mock_calls == [
+            call(
+                api,
+                'core/v3/contents/cid'
+                '?updated=2018-02-13T11%3A23%3A52.000-0100',
+                {'foo': 'bar'}
+            )
+        ]
+
+    def test_content_conflict(self):
+        api = JiveApi('http://jive.example.com/', 'jiveuser', 'jivepass')
+        req_t = namedtuple('MockRequest', ['method', 'url'])
+        req = req_t(method='PUT', url='http://jive.example.com/')
+        with patch('%s._put_json' % pb, autospec=True) as mock_put:
+            mock_put.side_effect = RequestFailedException(
+                MockResponse(409, 'Conflict', request=req)
+            )
+            with pytest.raises(ContentConflictException):
+                api.update_content('cid', {'foo': 'bar'})
+
+    def test_500(self):
+        api = JiveApi('http://jive.example.com/', 'jiveuser', 'jivepass')
+        req_t = namedtuple('MockRequest', ['method', 'url'])
+        req = req_t(method='PUT', url='http://jive.example.com/')
+        with patch('%s._put_json' % pb, autospec=True) as mock_put:
+            mock_put.side_effect = RequestFailedException(
+                MockResponse(500, 'Conflict', request=req)
+            )
+            with pytest.raises(RequestFailedException):
+                api.update_content('cid', {'foo': 'bar'})
+
+
+class TestGetImage(object):
+
+    def test_success(self):
+        api = JiveApi('http://jive.example.com/', 'jiveuser', 'jivepass')
+        mock_sess = MagicMock(spec_set=Session)
+        api._requests = mock_sess
+        mock_sess.get.return_value = MockResponse(200, 'OK', content=b'1234')
+        res = api.get_image('imgid')
+        assert res == b'1234'
+        assert mock_sess.mock_calls == [
+            call.get('http://jive.example.com/core/v3/images/imgid')
+        ]
+
+    def test_error(self):
+        api = JiveApi('http://jive.example.com/', 'jiveuser', 'jivepass')
+        mock_sess = MagicMock(spec_set=Session)
+        api._requests = mock_sess
+        req_t = namedtuple('MockRequest', ['method', 'url'])
+        req = req_t(
+            method='GET', url='http://jive.example.com/core/v3/images/imgid'
+        )
+        mock_sess.get.return_value = MockResponse(
+            404, 'Not Found', content=b'1234', request=req
+        )
+        with pytest.raises(RequestFailedException):
+            api.get_image('imgid')
+        assert mock_sess.mock_calls == [
+            call.get('http://jive.example.com/core/v3/images/imgid')
+        ]
+
+
+class TestUploadImage(object):
+
+    def test_success(self):
+        api = JiveApi('http://jive.example.com/', 'jiveuser', 'jivepass')
+        mock_sess = MagicMock(spec_set=Session)
+        api._requests = mock_sess
+        mock_sess.post.return_value = MockResponse(
+            201, 'Created', _json={'foo': 'bar'},
+            headers={'Location': 'http://some.location/'}
+        )
+        res = api.upload_image(b'1234', 'img.jpg', 'image/jpeg')
+        assert res == (
+            'http://some.location/', {'foo': 'bar'}
+        )
+        assert mock_sess.mock_calls == [
+            call.post(
+                'http://jive.example.com/core/v3/images',
+                files={
+                    'file': ('img.jpg', b'1234', 'image/jpeg')
+                },
+                allow_redirects=False
+            )
+        ]
+
+    def test_error(self):
+        api = JiveApi('http://jive.example.com/', 'jiveuser', 'jivepass')
+        mock_sess = MagicMock(spec_set=Session)
+        api._requests = mock_sess
+        req_t = namedtuple('MockRequest', ['method', 'url'])
+        req = req_t(
+            method='POST', url='http://jive.example.com/core/v3/images'
+        )
+        mock_sess.post.return_value = MockResponse(
+            400, 'Image is too large.', _json={'foo': 'bar'},
+            headers={'Location': 'http://some.location/'}, request=req
+        )
+        with pytest.raises(RequestFailedException):
+            api.upload_image(b'1234', 'img.jpg', 'image/jpeg')
+        assert mock_sess.mock_calls == [
+            call.post(
+                'http://jive.example.com/core/v3/images',
+                files={
+                    'file': ('img.jpg', b'1234', 'image/jpeg')
+                },
+                allow_redirects=False
+            )
+        ]

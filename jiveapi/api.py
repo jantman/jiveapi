@@ -38,7 +38,6 @@ Jason Antman <jason@jasonantman.com> <http://www.jasonantman.com>
 import logging
 import requests
 from urllib.parse import urljoin, quote_plus
-import re
 import json
 
 from jiveapi.jiveresponse import requests_hook
@@ -96,7 +95,7 @@ class JiveApi(object):
         logger.debug('GET %s', url)
         res = self._requests.get(url)
         logger.debug('GET %s returned %d %s', url, res.status_code, res.reason)
-        if res.status_code > 299:
+        if res.status_code != 200:
             raise RequestFailedException(res)
         j = res.json()
         if not isinstance(j, type({})) or 'list' not in j or not autopaginate:
@@ -127,7 +126,7 @@ class JiveApi(object):
         logger.debug(
             'POST %s returned %d %s', url, res.status_code, res.reason
         )
-        if res.status_code > 299:
+        if res.status_code != 201:
             raise RequestFailedException(res)
         return res.json()
 
@@ -151,7 +150,7 @@ class JiveApi(object):
         logger.debug(
             'PUT %s returned %d %s', url, res.status_code, res.reason
         )
-        if res.status_code > 299:
+        if res.status_code not in [200, 201]:
             raise RequestFailedException(res)
         return res.json()
 
@@ -174,10 +173,6 @@ class JiveApi(object):
         :rtype: dict
         """
         return self._get('version')
-
-    def _escape_query_string(self, s):
-        """Escape a query string for Jive's god-awful API queries"""
-        return re.sub(r'(,|\(|\)|\\)', lambda m: '\%s' % m.group(), s)
 
     def get_content(self, content_id):
         """
@@ -234,33 +229,6 @@ class JiveApi(object):
             'Created content with ID %s', res.get('contentID', 'unknown')
         )
         return res
-
-    def create_html_document(self, subject, body):
-        """
-        Create a HTML Document in Jive. This is a convenience wrapper around
-        :py:meth:`~.create_contents` to assist with forming the content JSON.
-
-        Note that this cannot be used for Documents with attachments (i.e.
-        images); you either need to upload the attachments separately or
-        use @TODO.
-
-        :param subject: The subject / title of the Document.
-        :type subject: str
-        :param body: The HTML body of the Document. See the notes in the jiveapi
-          package documentation about HTML handling.
-        :type body: str
-        :return: representation of the created Document content object
-        :rtype: dict
-        """
-        content = {
-            'type': 'document',
-            'subject': subject,
-            'content': {
-                'type': 'text/html',
-                'text': body
-            }
-        }
-        return self.create_content(content)
 
     def update_content(self, content_id, contents, update_date=None):
         """
@@ -338,6 +306,9 @@ class JiveApi(object):
         image, i.e. for embedding in an upcoming Document, Post, etc. Returns
         Image object and the user-facing URI for the image itself, i.e.
         ``https://sandbox.jiveon.com/api/core/v3/images/601174?a=1522503578891``
+        . This is the low-level direct API call that corresponds to `Upload New
+        Image <https://developers.jivesoftware.com/api/v3/cloud/rest/ImageServic
+        e.html#uploadImage%28MultipartBody%29>`_.
 
         **Note:** Python's ``requests`` lacks streaming file support. As such,
         images sent using this method will be entirely read into memory and then
@@ -374,49 +345,4 @@ class JiveApi(object):
         logger.debug(
             'Uploaded image with Location: %s', res.headers['Location']
         )
-        return res.headers['Location'], res.text
-
-
-"""
-## Document with embedded images GET example:
-
-  "content" : {
-    "text" : "<body><!-- [DocumentBodyStart:1693a4b1-d031-49cf-89f0-c768af9badbd] --><div class=\"jive-rendered-content\"><p>This is one image&#160;<a href=\"https://<JIVE-HOST>/servlet/JiveServlet/showImage/102-181245-3-601173/20x20.png\"><img alt=\"image description 20x20\" class=\"image-2 jive-image j-img-original\" height=\"20\" src=\"https://<JIVE-HOST>/servlet/JiveServlet/downloadImage/102-181245-3-601173/20x20.png\" style=\"height: auto;\" width=\"20\"/></a> and this is another:&#160;<a href=\"https://<JIVE-HOST>/servlet/JiveServlet/showImage/102-181245-3-601172/25x25.png\"><img alt=\"image description 25x25\" class=\"image-1 jive-image j-img-original\" height=\"25\" src=\"https://<JIVE-HOST>/servlet/JiveServlet/downloadImage/102-181245-3-601172/25x25.png\" style=\"height: auto;\" width=\"25\"/></a></p></div><!-- [DocumentBodyEnd:1693a4b1-d031-49cf-89f0-c768af9badbd] --></body>",
-    "editable" : false,
-    "type" : "text/html"
-  },
-  "contentImages" : [ {
-    "id" : "601172",
-    "ref" : "https://<JIVE-HOST>/api/core/v3/images/601172?a=1522455592480",
-    "size" : 167,
-    "width" : 25,
-    "height" : 25,
-    "type" : "image",
-    "typeCode" : 111
-  }, {
-    "id" : "601173",
-    "ref" : "https://<JIVE-HOST>/api/core/v3/images/601173?a=1522455592433",
-    "size" : 165,
-    "width" : 20,
-    "height" : 20,
-    "type" : "image",
-    "typeCode" : 111
-  } ],
-  "attachments" : [ ],
-
-## Adding Embedded Images to Content:
-https://community.jivesoftware.com/docs/DOC-233174#jive_content_id_Adding_Embedded_Images_to_a_Piece_of_Content
-
-1. Upload Image (POST multipart/form-data) See: Images Service
-2. Read Location HTTP Header for API URI for Image
-3. Add HTML Markup in Content Body using the new API URI for the Image, see: Contents Service > Update Content
-  * May find value in the Contents Service > Update Editable Content if you want to leverage RTE macros.
-    * Note the documentation callout : The input JSON must include a true value in content.editable if the content body is using RTE macros.
-
-## Stuff about Editable Content and RTE Macros
-https://developers.jivesoftware.com/api/v3/cloud/rest/ContentService.html#updateEditableContent(String, String, boolean, boolean, String)
-
-## Performance Note:
-see https://community.jivesoftware.com/docs/DOC-233174#jive_content_id_Suppressing_Fields_from_API_Responses
-
-"""
+        return res.headers['Location'], res.json()
