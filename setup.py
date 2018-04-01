@@ -74,9 +74,5 @@ setup(
     long_description=long_description,
     install_requires=requires,
     keywords="jive collaboration client",
-    classifiers=classifiers,
-    entry_points="""
-    [console_scripts]
-    jiveapi = jiveapi.cli:main
-    """
+    classifiers=classifiers
 )
