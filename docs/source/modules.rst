@@ -1,5 +1,5 @@
 jiveapi
-===============
+=======
 
 .. toctree::
    :maxdepth: 4

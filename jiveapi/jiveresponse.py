@@ -47,6 +47,14 @@ JIVE_SECURITY_RE = re.compile(r'^throw.*;\s*')
 
 
 def requests_hook(response, **_):
+    """
+    :py:class:`requests.Session` ``response`` hook to return
+    :py:class:`~.JiveResponse` objects instead of plain
+    :py:class:`requests.Response` objects.
+
+    Add this to a :py:class:`requests.Session` like
+    ``session.hooks['response'].append(requests_hook)``
+    """
     res = JiveResponse()
     res.__dict__.update(response.__dict__)
     return res

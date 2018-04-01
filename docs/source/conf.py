@@ -307,10 +307,16 @@ linkcheck_ignore = [
     r'https?://pypi\.python\.org/pypi/jiveapi'
 ]
 
+nitpick_ignore = [
+    ('py:class', 'requests.models.Response')
+]
+
+
 # exclude module docstrings - see http://stackoverflow.com/a/18031024/211734
 def remove_module_docstring(app, what, name, obj, options, lines):
     if what == "module":
         del lines[:]
+
 
 # ignore non-local image warnings
 def _warn_node(self, msg, node, **kwargs):
@@ -318,6 +324,7 @@ def _warn_node(self, msg, node, **kwargs):
         self._warnfunc(msg, '%s:%s' % get_source_line(node))
 
 sphinx.environment.BuildEnvironment.warn_node = _warn_node
+
 
 def setup(app):
     app.connect("autodoc-process-docstring", remove_module_docstring)

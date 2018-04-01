@@ -58,7 +58,7 @@ class JiveContent(object):
     def create_html_document(self, subject, body):
         """
         Create a HTML Document in Jive. This is a convenience wrapper around
-        :py:meth:`~.create_contents` to assist with forming the content JSON.
+        :py:meth:`~.create_content` to assist with forming the content JSON.
 
         Note that this cannot be used for Documents with attachments (i.e.
         images); you either need to upload the attachments separately or

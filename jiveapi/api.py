@@ -282,7 +282,7 @@ class JiveApi(object):
         tring%2C%20String%2C%20String%2C%20String%2C%20String%29>`_.
 
         :param image_id: Jive Image ID to get. This can be found in a Content
-        (i.e. Document or Post) object's ``contentImages`` list.
+          (i.e. Document or Post) object's ``contentImages`` list.
         :type image_id: str
         :return: binary content of Image
         :rtype: bytes
