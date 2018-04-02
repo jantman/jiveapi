@@ -57,7 +57,8 @@ class JiveApi(object):
         Initialize JiveApi client.
 
         :param base_url: Base URL to the Jive API. This should be the scheme,
-          hostname, and optional port with nothing after it (i.e. no ``/api``).
+          hostname, and optional port ending with a path of ``/api/`` (i.e.
+          ``https://sandbox.jiveon.com/api/``).
         :type base_url: str
         :param username: Jive API username
         :type username: str
@@ -75,6 +76,18 @@ class JiveApi(object):
         # setup auth
         self._requests.auth = (self._username, self._password)
 
+    def abs_url(self, path):
+        """
+        Given a relative path under the base URL of the Jive instance, return
+        the absolute URL formed by joining the base_url to the specified path.
+
+        :param path: relative path on Jive instance
+        :type path: str
+        :return: absolute URL to ``path`` on the Jive instance
+        :rtype: str
+        """
+        return urljoin(self._base_url, path)
+
     def _get(self, path, autopaginate=True):
         """
         Execute a GET request against the Jive API, handling pagination.
@@ -91,7 +104,7 @@ class JiveApi(object):
             # likely a pagination link
             url = path
         else:
-            url = urljoin(self._base_url, path)
+            url = self.abs_url(path)
         logger.debug('GET %s', url)
         res = self._requests.get(url)
         logger.debug('GET %s returned %d %s', url, res.status_code, res.reason)
@@ -120,7 +133,7 @@ class JiveApi(object):
             # likely a pagination link
             url = path
         else:
-            url = urljoin(self._base_url, path)
+            url = self.abs_url(path)
         logger.debug('POST to %s (length %d)', url, len(json.dumps(data)))
         res = self._requests.post(url, json=data)
         logger.debug(
@@ -144,7 +157,7 @@ class JiveApi(object):
             # likely a pagination link
             url = path
         else:
-            url = urljoin(self._base_url, path)
+            url = self.abs_url(path)
         logger.debug('PUT to %s (length %d)', url, len(json.dumps(data)))
         res = self._requests.put(url, json=data)
         logger.debug(
@@ -289,7 +302,7 @@ class JiveApi(object):
         """
         # Testing Note: betamax==0.8.1 and/or betamax-serializers==0.2.0 cannot
         # handle testing the binary response content from this method.
-        url = urljoin(self._base_url, 'core/v3/images/%s' % image_id)
+        url = self.abs_url('core/v3/images/%s' % image_id)
         logger.debug('GET (binary) %s', url)
         res = self._requests.get(url)
         logger.debug(
@@ -331,7 +344,7 @@ class JiveApi(object):
         """
         # Testing Note: betamax==0.8.1 and/or betamax-serializers==0.2.0 cannot
         # handle testing the binary response content from this method.
-        url = urljoin(self._base_url, 'core/v3/images')
+        url = self.abs_url('core/v3/images')
         files = {
             'file': (img_filename, img_data, content_type)
         }

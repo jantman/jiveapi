@@ -38,7 +38,9 @@ Requirements
 ------------
 
 * Python 3.4+. Yes, this package is *only* developed and tested against Python3. It *should* work under 2.7 as well, but that is neither tested nor supported.
-* `requests <http://docs.python-requests.org/en/master/>`_ package
+* `requests <http://docs.python-requests.org/en/master/>`_
+* `premailer <http://github.com/peterbe/premailer>`_ (optional, only required for high-level JiveContent interface)
+* `lxml <http://lxml.de/>`_ (optional, only required for high-level JiveContent interface)
 
 Installation
 ------------

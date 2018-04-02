@@ -84,6 +84,13 @@ class TestInit(object):
         assert mock_sess.hooks['response'] == [requests_hook]
 
 
+class TestAbsUrl(object):
+
+    def test_abs_url(self):
+        api = JiveApi('http://jive.example.com/api/', 'jiveuser', 'jivepass')
+        assert api.abs_url('foo/bar') == 'http://jive.example.com/api/foo/bar'
+
+
 class TestUser(object):
 
     def test_user_self_svc_acct(self, api):

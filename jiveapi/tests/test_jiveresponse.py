@@ -35,7 +35,6 @@ Jason Antman <jason@jasonantman.com> <http://www.jasonantman.com>
 ##################################################################################
 """
 
-from requests import Response
 from unittest.mock import patch, call
 
 from jiveapi.jiveresponse import JiveResponse

@@ -42,7 +42,9 @@ with open('README.rst') as file:
     long_description = file.read()
 
 requires = [
-    'requests < 3.0.0'
+    'requests < 3.0.0',
+    'premailer >=3.0.0, <4.0.0',
+    'lxml >=4.0.0, <5.0.0'
 ]
 
 
