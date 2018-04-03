@@ -114,20 +114,20 @@ class JiveContent(object):
         self._api = api
 
     def create_html_document(
-        self, subject, body, tags=[], place_id=None, visibility=None,
-        set_datetime=None
+        self, subject, html, tags=[], place_id=None, visibility=None,
+        set_datetime=None, inline_css=True, jiveize=True
     ):
         """
         Create a HTML `Document <https://developers.jivesoftware.com/api/v3/clou
         d/rest/DocumentEntity.html>`_ in Jive. This is a convenience wrapper
         around :py:meth:`~.create_content` to assist with forming the content
-        JSON.
+        JSON, as well as to assist with HTML handling.
 
         :param subject: The subject / title of the Document.
         :type subject: str
-        :param body: The HTML body of the Document. See the notes in the jiveapi
-          package documentation about HTML handling.
-        :type body: str
+        :param html: The HTML for the Document's content. See the notes in the
+          jiveapi package documentation about HTML handling.
+        :type html: str
         :param tags: List of string tags to add to the Document
         :type tags: list
         :param place_id: If specified, post this document in the Place with the
@@ -143,15 +143,32 @@ class JiveContent(object):
         :param set_datetime: datetime.datetime to set as the publish time. This
           allows backdating Documents to match their source publish time.
         :type set_datetime: datetime.datetime
+        :param inline_css: if True, pass input HTML through
+          :py:meth:`~.inline_css_etree` to convert any embedded CSS to inline
+          CSS so that Jive will preserve/respect it.
+        :type inline_css: bool
+        :param jiveize: if True, pass input HTML through
+          :py:meth:`~.jiveize_etree` to make it look more like how Jive styles
+          HTML internally.
+        :type jiveize: bool
         :return: representation of the created Document content object
         :rtype: dict
         """
+        if jiveize or inline_css:
+            doc = JiveContent.html_to_etree(html)
+            if inline_css:
+                logger.debug('Passing input HTML through inline_css_etree()')
+                doc = JiveContent.inline_css_etree(doc)
+            if jiveize:
+                logger.debug('Passing input HTML through jiveize_etree()')
+                doc = JiveContent.jiveize_etree(doc)
+            html = etree.tostring(doc)
         content = {
             'type': 'document',
             'subject': subject,
             'content': {
                 'type': 'text/html',
-                'text': body
+                'text': html
             },
             'via': {
                 'displayName': 'Python jiveapi v%s' % VERSION,

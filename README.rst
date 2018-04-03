@@ -27,8 +27,9 @@ Supported Actions
 
 * High-level wrapper API (provides assistance with generating parameters and massaging content):
 
-  * *Not Yet Implemented:* Create and Update HTML Documents or Posts given HTML content and some parameters, including most of the common parameters such as the place to post in, visibility, published/draft status, and keywords.
-  * *Not Yet Implemented:* Modify HTML formatting to use Jive UI conventions ("jive-ize" HTML).
+  * Create and Update HTML Documents given HTML content and some parameters, including most of the common parameters such as the place to post in, visibility, published/draft status, and keywords.
+  * *Not Yet Implemented:* Create and Update HTML Posts given HTML content and some parameters, including most of the common parameters such as the place to post in, visibility, published/draft status, and keywords.
+  * Modify HTML formatting to use Jive UI conventions ("jive-ize" HTML).
   * *Not Yet Implemented:* Given a HTML string that contains image tags referring to local images and the filesystem path containing the images, upload each of them to Jive and return the HTML with image paths replaced with their Jive URLs.
   * *Not yet Implemented:* A way to update content that includes embedded Images without updating the images. It doesn't appear that the Jive API returns a checksum for images, but maybe there's a way to get it to?
   * *Not yet implemented:* Option to modify HTML to insert Jive-style information/notice boxes as header and footer, such as information reminding users not to edit the document directly on Jive and giving links to the canonical source, commit, and build that last generated the content.

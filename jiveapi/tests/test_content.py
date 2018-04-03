@@ -38,7 +38,7 @@ Jason Antman <jason@jasonantman.com> <http://www.jasonantman.com>
 import os
 from datetime import datetime
 from urllib.parse import urljoin
-from unittest.mock import Mock, call, patch
+from unittest.mock import Mock, call, patch, DEFAULT
 
 from lxml import etree
 from lxml.html import builder as E
@@ -90,7 +90,61 @@ class TestCreateHtmlDocument(ContentTester):
     def test_defaults(self):
         rval = Mock()
         self.mockapi.create_content.return_value = rval
-        res = self.cls.create_html_document('subj', 'body')
+        m_hte = Mock()
+        m_ice = Mock()
+        m_je = Mock()
+        with patch.multiple(
+            pb,
+            html_to_etree=DEFAULT,
+            inline_css_etree=DEFAULT,
+            jiveize_etree=DEFAULT
+        ) as mocks:
+            with patch('%s.etree.tostring' % pbm) as mock_tostring:
+                mock_tostring.return_value = 'fixed_string'
+                mocks['html_to_etree'].return_value = m_hte
+                mocks['inline_css_etree'].return_value = m_ice
+                mocks['jiveize_etree'].return_value = m_je
+                res = self.cls.create_html_document('subj', 'body')
+        assert res == rval
+        assert self.mockapi.mock_calls == [
+            call.create_content({
+                'type': 'document',
+                'subject': 'subj',
+                'content': {
+                    'type': 'text/html',
+                    'text': 'fixed_string'
+                },
+                'via': {
+                    'displayName': 'Python jiveapi v%s' % VERSION,
+                    'url': PROJECT_URL
+                }
+            })
+        ]
+        assert mocks['html_to_etree'].mock_calls == [call('body')]
+        assert mocks['inline_css_etree'].mock_calls == [call(m_hte)]
+        assert mocks['jiveize_etree'].mock_calls == [call(m_ice)]
+        assert mock_tostring.mock_calls == [call(m_je)]
+
+    def test_no_modify(self):
+        rval = Mock()
+        self.mockapi.create_content.return_value = rval
+        m_hte = Mock()
+        m_ice = Mock()
+        m_je = Mock()
+        with patch.multiple(
+            pb,
+            html_to_etree=DEFAULT,
+            inline_css_etree=DEFAULT,
+            jiveize_etree=DEFAULT
+        ) as mocks:
+            with patch('%s.etree.tostring' % pbm) as mock_tostring:
+                mock_tostring.return_value = 'fixed_string'
+                mocks['html_to_etree'].return_value = m_hte
+                mocks['inline_css_etree'].return_value = m_ice
+                mocks['jiveize_etree'].return_value = m_je
+                res = self.cls.create_html_document(
+                    'subj', 'body', jiveize=False, inline_css=False
+                )
         assert res == rval
         assert self.mockapi.mock_calls == [
             call.create_content({
@@ -106,13 +160,31 @@ class TestCreateHtmlDocument(ContentTester):
                 }
             })
         ]
+        assert mocks['html_to_etree'].mock_calls == []
+        assert mocks['inline_css_etree'].mock_calls == []
+        assert mocks['jiveize_etree'].mock_calls == []
+        assert mock_tostring.mock_calls == []
 
     def test_tags(self):
         rval = Mock()
         self.mockapi.create_content.return_value = rval
-        res = self.cls.create_html_document(
-            'subj', 'body', tags=['foo', 'bar', 'baz']
-        )
+        m_hte = Mock()
+        m_ice = Mock()
+        m_je = Mock()
+        with patch.multiple(
+            pb,
+            html_to_etree=DEFAULT,
+            inline_css_etree=DEFAULT,
+            jiveize_etree=DEFAULT
+        ) as mocks:
+            with patch('%s.etree.tostring' % pbm) as mock_tostring:
+                mock_tostring.return_value = 'fixed_string'
+                mocks['html_to_etree'].return_value = m_hte
+                mocks['inline_css_etree'].return_value = m_ice
+                mocks['jiveize_etree'].return_value = m_je
+                res = self.cls.create_html_document(
+                    'subj', 'body', tags=['foo', 'bar', 'baz']
+                )
         assert res == rval
         assert self.mockapi.mock_calls == [
             call.create_content({
@@ -120,7 +192,7 @@ class TestCreateHtmlDocument(ContentTester):
                 'subject': 'subj',
                 'content': {
                     'type': 'text/html',
-                    'text': 'body'
+                    'text': 'fixed_string'
                 },
                 'tags': ['foo', 'bar', 'baz'],
                 'via': {
@@ -133,9 +205,23 @@ class TestCreateHtmlDocument(ContentTester):
     def test_place(self):
         rval = Mock()
         self.mockapi.create_content.return_value = rval
-        res = self.cls.create_html_document(
-            'subj', 'body', place_id='12345'
-        )
+        m_hte = Mock()
+        m_ice = Mock()
+        m_je = Mock()
+        with patch.multiple(
+            pb,
+            html_to_etree=DEFAULT,
+            inline_css_etree=DEFAULT,
+            jiveize_etree=DEFAULT
+        ) as mocks:
+            with patch('%s.etree.tostring' % pbm) as mock_tostring:
+                mock_tostring.return_value = 'fixed_string'
+                mocks['html_to_etree'].return_value = m_hte
+                mocks['inline_css_etree'].return_value = m_ice
+                mocks['jiveize_etree'].return_value = m_je
+                res = self.cls.create_html_document(
+                    'subj', 'body', place_id='12345'
+                )
         assert res == rval
         assert self.mockapi.mock_calls == [
             call.abs_url('core/v3/places/12345'),
@@ -144,7 +230,7 @@ class TestCreateHtmlDocument(ContentTester):
                 'subject': 'subj',
                 'content': {
                     'type': 'text/html',
-                    'text': 'body'
+                    'text': 'fixed_string'
                 },
                 'parent': 'http://jive.example.com/api/core/v3/places/12345',
                 'via': {
@@ -157,9 +243,23 @@ class TestCreateHtmlDocument(ContentTester):
     def test_visibility(self):
         rval = Mock()
         self.mockapi.create_content.return_value = rval
-        res = self.cls.create_html_document(
-            'subj', 'body', visibility='hidden'
-        )
+        m_hte = Mock()
+        m_ice = Mock()
+        m_je = Mock()
+        with patch.multiple(
+            pb,
+            html_to_etree=DEFAULT,
+            inline_css_etree=DEFAULT,
+            jiveize_etree=DEFAULT
+        ) as mocks:
+            with patch('%s.etree.tostring' % pbm) as mock_tostring:
+                mock_tostring.return_value = 'fixed_string'
+                mocks['html_to_etree'].return_value = m_hte
+                mocks['inline_css_etree'].return_value = m_ice
+                mocks['jiveize_etree'].return_value = m_je
+                res = self.cls.create_html_document(
+                    'subj', 'body', visibility='hidden'
+                )
         assert res == rval
         assert self.mockapi.mock_calls == [
             call.create_content({
@@ -167,7 +267,7 @@ class TestCreateHtmlDocument(ContentTester):
                 'subject': 'subj',
                 'content': {
                     'type': 'text/html',
-                    'text': 'body'
+                    'text': 'fixed_string'
                 },
                 'visibility': 'hidden',
                 'via': {
@@ -181,9 +281,23 @@ class TestCreateHtmlDocument(ContentTester):
         rval = Mock()
         self.mockapi.create_content.return_value = rval
         dt = datetime(2018, 2, 13, 11, 52, 18, tzinfo=FixedOffset(-60, 'foo'))
-        res = self.cls.create_html_document(
-            'subj', 'body', visibility='hidden', set_datetime=dt
-        )
+        m_hte = Mock()
+        m_ice = Mock()
+        m_je = Mock()
+        with patch.multiple(
+            pb,
+            html_to_etree=DEFAULT,
+            inline_css_etree=DEFAULT,
+            jiveize_etree=DEFAULT
+        ) as mocks:
+            with patch('%s.etree.tostring' % pbm) as mock_tostring:
+                mock_tostring.return_value = 'fixed_string'
+                mocks['html_to_etree'].return_value = m_hte
+                mocks['inline_css_etree'].return_value = m_ice
+                mocks['jiveize_etree'].return_value = m_je
+                res = self.cls.create_html_document(
+                    'subj', 'body', visibility='hidden', set_datetime=dt
+                )
         assert res == rval
         assert self.mockapi.mock_calls == [
             call.create_content({
@@ -191,7 +305,7 @@ class TestCreateHtmlDocument(ContentTester):
                 'subject': 'subj',
                 'content': {
                     'type': 'text/html',
-                    'text': 'body'
+                    'text': 'fixed_string'
                 },
                 'visibility': 'hidden',
                 'via': {
