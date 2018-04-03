@@ -96,7 +96,9 @@ def newline_to_br(elem):
     :rtype: lxml.etree._Element
     """
     src = etree.tostring(elem).strip()
-    res = src.replace("\n", "<br />\n")
+    if isinstance(src, type(b'')):  # nocoverage
+        src = src.decode()
+    res = src.replace("\n", "<br/>\n")
     return etree.fromstring(res + "\n")
 
 
@@ -169,6 +171,38 @@ class JiveContent(object):
         return self._api.create_content(content)
 
     @staticmethod
+    def html_to_etree(html):
+        """
+        Given a string of HTML, parse via ``etree.fromstring()`` and return
+        either the roottree if a doctype is present or the root otherwise.
+
+        **Important Note:** If the document passed in has a doctype, it will be
+        stripped out. That's fine, since Jive wouldn't recognize it anyway.
+
+        :param html: HTML string
+        :type html: str
+        :return: root of the HTML tree for parsing and manipulation purposes
+        :rtype: ``lxml.etree._Element`` or ``lxml.etree._ElementTree``
+        """
+        tree = etree.fromstring(html.strip(), etree.HTMLParser()).getroottree()
+        return tree.getroot()
+
+    @staticmethod
+    def inline_css_html(html):
+        """
+        Wrapper around :py:meth:`~.inline_css_etree` that takes a string of HTML
+        and returns a string of HTML.
+
+        :param html: input HTML to inline CSS in
+        :type html: str
+        :return: HTML with embedded/internal CSS inlined
+        :rtype: str
+        """
+        return etree.tostring(
+            JiveContent.inline_css_etree(JiveContent.html_to_etree(html))
+        )
+
+    @staticmethod
     def inline_css_etree(root):
         """
         Given an etree root node, uses
@@ -179,7 +213,7 @@ class JiveContent(object):
         :param root: root node of etree to inline CSS in
         :type root: lxml.etree._Element
         :return: root node of etree with CSS inlined
-        :rtype: lxml.etree._Element
+        :rtype: ``lxml.etree._Element`` or ``lxml.etree._ElementTree``
         """
         return Premailer(root).transform()
 
@@ -197,10 +231,7 @@ class JiveContent(object):
         :return: jive-ized HTML
         :rtype: str
         """
-        # parse and get the document
-        tree = etree.fromstring(html.strip(), etree.HTMLParser()).getroottree()
-        page = tree.getroot()
-        root = tree if html.strip().startswith(tree.docinfo.doctype) else page
+        root = JiveContent.html_to_etree(html)
         return etree.tostring(
             JiveContent.jiveize_etree(
                 root, no_sourcecode_style=no_sourcecode_style
@@ -226,7 +257,7 @@ class JiveContent(object):
           any ``div`` elements with a class of ``sourceCode``.
         :type no_sourcecode_style: bool
         :return: root node of etree containing jive-ized HTML
-        :rtype: lxml.etree._Element
+        :rtype: ``lxml.etree._Element`` or ``lxml.etree._ElementTree``
         """
         # sourceCode div cleanup
         if no_sourcecode_style:
@@ -278,6 +309,83 @@ https://community.jivesoftware.com/docs/DOC-233174#jive_content_id_Adding_Embedd
 3. Add HTML Markup in Content Body using the new API URI for the Image, see: Contents Service > Update Content
   * May find value in the Contents Service > Update Editable Content if you want to leverage RTE macros.
     * Note the documentation callout : The input JSON must include a true value in content.editable if the content body is using RTE macros.
+
+## Creating and Updating content with embedded images:
+
+So here's my theory:
+
+* When we create, the method should return a dict with a "contentID" key and an
+"images" key. Those both need to be stored by the caller. The "images" key will
+contain a mapping from image filenames (src attribute in the original HTML) to
+a dict of the Jive imageID / API URL and the Jive user-facing URL (both of which
+are returned by ``api.upload_image()``.
+* When we want to update, we'll have to pass back in the contentID, the new HTML,
+and that images dict. We'll then need to GET the existing content object in Jive.
+Once we have the existing content object, we can examine its ``contentImages``
+key to see what images it has. We'll have to download each of them locally via
+their ``ref`` key and do a binary comparison on the local images to determine if
+we should use an existing image or upload a new one.
+
+So we GET the existing content from Jive, pull a list of the image (local) paths
+in the input HTML, and also have an ``images`` dict that was stored from the
+original content creation. For each of the local image paths in the HTML:
+
+1. If it's not in the persisted ``images`` dict, upload the new image and replace
+the local path in the HTML with the uploaded path. Update ``images`` dict with
+the new information. Move on to next.
+2. GET the actual binary image that's persisted for it in the ``images`` dict
+and compare the two binary images.
+3. If the images differ, then we need to upload a new one. Remove the current
+entry from the ``images`` dict and jump back to #1.
+4. Finally, we have an unchanged image. Unfortunately this is difficult. When
+images are initially uploaded (e.g. #1, above) they're given a temporary API-
+based URL that we put in the HTML. But once the HTML is uploaded and processed,
+the images are given a permanent client-facing URL, like
+``https://sandbox.jiveon.com/servlet/JiveServlet/downloadImage/102-181245-3-601173/20x20.png``. We'll need to build this URL ourselves, and then replace the local
+image path in our HTML with this persistent image (so that we show the same
+image that was there previously). One way to do this would be to GET newly
+created or uploaded Content objects right after we upload them, and find the new
+client-facing URLs for the images. But there's a programmatic way to do it.
+
+Let's take this example URL:
+https://sandbox.jiveon.com/servlet/JiveServlet/downloadImage/102-181245-3-601173/20x20.png
+
+That image was originally uploaded (via ``api.upload_image()`` with a filename
+of ``20x20.png``, and that upload generated an Image with ID 601173. The image
+is attached to a Document whose API object representation includes, in part:
+
+{
+  "entityType" : "document",
+  "id" : "181245",
+  "content" : {
+    "text" : "<body><!-- [DocumentBodyStart:1693a4b1-d031-49cf-89f0-c768af9badbd] --><div class=\"jive-rendered-content\"><p>This is one image&#160;<a href=\"https://sandbox.jiveon.com/servlet/JiveServlet/showImage/102-181245-3-601173/20x20.png\"><img alt=\"image description 20x20\" class=\"image-2 jive-image j-img-original\" height=\"20\" src=\"https://sandbox.jiveon.com/servlet/JiveServlet/downloadImage/102-181245-3-601173/20x20.png\" style=\"height: auto;\" width=\"20\"/></a> and this is another:&#160;<a href=\"https://sandbox.jiveon.com/servlet/JiveServlet/showImage/102-181245-3-601172/25x25.png\"><img alt=\"image description 25x25\" class=\"image-1 jive-image j-img-original\" height=\"25\" src=\"https://sandbox.jiveon.com/servlet/JiveServlet/downloadImage/102-181245-3-601172/25x25.png\" style=\"height: auto;\" width=\"25\"/></a></p></div><!-- [DocumentBodyEnd:1693a4b1-d031-49cf-89f0-c768af9badbd] --></body>",
+    "editable" : false,
+    "type" : "text/html"
+  },
+  "contentImages" : [ {
+    "id" : "601173",
+    "ref" : "https://sandbox.jiveon.com/api/core/v3/images/601173?a=1522455592433",
+    "size" : 165,
+    "width" : 20,
+    "height" : 20,
+    "type" : "image",
+    "typeCode" : 111
+  } ],
+  "version" : 3,
+  "type" : "document",
+  "typeCode" : 102
+} 
+
+So we see that the path of:
+
+``/servlet/JiveServlet/downloadImage/102-181245-3-601173/20x20.png``
+
+appears to have a fixed prefix of ``/servlet/JiveServlet/downloadImage/``
+followed by
+``<typeCode>-<id>-<version>-<Image ID>/<upload filename>``
+
+At the end of this, we'll need to make sure we pruned any stale entries from
+our ``images`` dict before we return it back to the caller.
 
 ## Stuff about Editable Content and RTE Macros
 https://developers.jivesoftware.com/api/v3/cloud/rest/ContentService.html#updateEditableContent(String, String, boolean, boolean, String)

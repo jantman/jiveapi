@@ -48,14 +48,19 @@ from jiveapi.api import JiveApi
 
 
 if 'TOXINIDIR' in os.environ:
-    cassette_dir = os.path.join(
-        os.environ['TOXINIDIR'], 'jiveapi', 'tests',
-        'fixtures', 'cassettes'
+    fixture_dir = os.path.join(
+        os.environ['TOXINIDIR'], 'jiveapi', 'tests', 'fixtures'
     )
+    cassette_dir = os.path.join(fixture_dir, 'cassettes')
 else:
-    cassette_dir = os.path.abspath(os.path.join(
-        os.path.dirname(__file__), 'fixtures', 'cassettes'
+    fixture_dir = os.path.abspath(os.path.join(
+        os.path.dirname(__file__), 'fixtures'
     ))
+    cassette_dir = os.path.join(fixture_dir, 'cassettes')
+
+
+if 'JIVE_URL' not in os.environ:
+    os.environ['JIVE_URL'] = 'https://sandbox.jiveon.com/api'
 
 
 def pytest_addoption(parser):
@@ -74,6 +79,11 @@ def betamax_sanitizer(interaction, current_cassette):
                     replace=h
                 )
             )
+
+
+@pytest.fixture
+def fixtures_path():
+    return os.path.abspath(fixture_dir)
 
 
 @pytest.fixture
