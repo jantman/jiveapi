@@ -290,7 +290,7 @@ class TestCreateContent(object):
         api = JiveApi('http://jive.example.com/', 'jiveuser', 'jivepass')
         req_t = namedtuple('MockRequest', ['method', 'url'])
         req = req_t(method='POST', url='http://jive.example.com/')
-        with patch('%s._post_json' % pb, autospec=True) as mock_post:
+        with patch('%s._post_json' % pb) as mock_post:
             mock_post.side_effect = RequestFailedException(
                 MockResponse(409, 'Conflict', request=req)
             )
@@ -301,7 +301,7 @@ class TestCreateContent(object):
         api = JiveApi('http://jive.example.com/', 'jiveuser', 'jivepass')
         req_t = namedtuple('MockRequest', ['method', 'url'])
         req = req_t(method='POST', url='http://jive.example.com/')
-        with patch('%s._post_json' % pb, autospec=True) as mock_post:
+        with patch('%s._post_json' % pb) as mock_post:
             mock_post.side_effect = RequestFailedException(
                 MockResponse(500, 'Conflict', request=req)
             )
@@ -429,7 +429,7 @@ class TestUpdateContent(object):
         api = JiveApi('http://jive.example.com/', 'jiveuser', 'jivepass')
         req_t = namedtuple('MockRequest', ['method', 'url'])
         req = req_t(method='PUT', url='http://jive.example.com/')
-        with patch('%s._put_json' % pb, autospec=True) as mock_put:
+        with patch('%s._put_json' % pb) as mock_put:
             mock_put.side_effect = RequestFailedException(
                 MockResponse(409, 'Conflict', request=req)
             )
@@ -440,7 +440,7 @@ class TestUpdateContent(object):
         api = JiveApi('http://jive.example.com/', 'jiveuser', 'jivepass')
         req_t = namedtuple('MockRequest', ['method', 'url'])
         req = req_t(method='PUT', url='http://jive.example.com/')
-        with patch('%s._put_json' % pb, autospec=True) as mock_put:
+        with patch('%s._put_json' % pb) as mock_put:
             mock_put.side_effect = RequestFailedException(
                 MockResponse(500, 'Conflict', request=req)
             )
