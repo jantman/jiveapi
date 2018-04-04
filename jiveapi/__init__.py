@@ -35,5 +35,8 @@ Jason Antman <jason@jasonantman.com> <http://www.jasonantman.com>
 ##################################################################################
 """
 
-from jiveapi.api import JiveApi  # noqa
-from jiveapi.content import JiveContent  # noqa
+try:
+    from jiveapi.api import JiveApi  # noqa
+    from jiveapi.content import JiveContent  # noqa
+except ImportError:
+    pass
