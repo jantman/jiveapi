@@ -34,3 +34,6 @@ AUTHORS:
 Jason Antman <jason@jasonantman.com> <http://www.jasonantman.com>
 ##################################################################################
 """
+
+from jiveapi.api import JiveApi
+from jiveapi.content import JiveContent
