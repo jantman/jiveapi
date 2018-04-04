@@ -91,9 +91,9 @@ def newline_to_br(elem):
     before all newlines, and return a new Element with that content.
 
     :param elem: element to modify
-    :type elem: lxml.etree._Element
+    :type elem: ``lxml.etree._Element``
     :return: modified element
-    :rtype: lxml.etree._Element
+    :rtype: ``lxml.etree._Element``
     """
     src = etree.tostring(elem).strip()
     if isinstance(src, type(b'')):  # nocoverage
@@ -332,7 +332,7 @@ class JiveContent(object):
         Jive only allows inline CSS.
 
         :param root: root node of etree to inline CSS in
-        :type root: lxml.etree._Element
+        :type root: ``lxml.etree._Element``
         :return: root node of etree with CSS inlined
         :rtype: ``lxml.etree._Element`` or ``lxml.etree._ElementTree``
         """
@@ -367,13 +367,13 @@ class JiveContent(object):
 
         * If ``no_sourcecode_style`` is True, remove the ``style`` attribute
           from any ``div`` elements with a class of ``sourceCode``.
-        * In all ``<pre>`` elements, convert ``\n`` to ``<br />\n`` via
-          :py:func:`~.newline_to_br`.
-        * For any HTML tags that are keys of :py:const:`~.TAGSTYLES`, set their
-          style attribute according to :py:const:`~.TAGSTYLES`.
+        * In all ``<pre>`` elements, convert ``\\n`` to ``<br />\\n``
+          via :py:func:`~.newline_to_br`.
+        * For any HTML tags that are keys of :py:data:`~.TAGSTYLES`, set their
+          style attribute according to :py:data:`~.TAGSTYLES`.
 
         :param root: root node of etree to jive-ize
-        :type root: lxml.etree._Element
+        :type root: ``lxml.etree._Element``
         :param no_sourcecode_style: If True, remove the ``style`` attribute from
           any ``div`` elements with a class of ``sourceCode``.
         :type no_sourcecode_style: bool
