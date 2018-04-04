@@ -127,6 +127,48 @@ class TestCreateHtmlDocument(ContentTester):
         ]
 
 
+class TestUpdateHtmlDocument(ContentTester):
+
+    def test_defaults(self):
+        rval = Mock()
+        self.mockapi.update_content.return_value = rval
+        with patch('%s.dict_for_html_document' % pb) as mock_dfhd:
+            mock_dfhd.return_value = {'foo': 'bar'}
+            res = self.cls.update_html_document('cid1234', 'subj', 'body')
+        assert res == rval
+        assert self.mockapi.mock_calls == [
+            call.update_content('cid1234', {'foo': 'bar'})
+        ]
+        assert mock_dfhd.mock_calls == [
+            call(
+                'subj', 'body', tags=[], place_id=None, visibility=None,
+                inline_css=True, jiveize=True
+            )
+        ]
+
+    def test_non_defaults(self):
+        dt = datetime(2018, 2, 13, 11, 52, 18, tzinfo=FixedOffset(-60, 'foo'))
+        rval = Mock()
+        self.mockapi.update_content.return_value = rval
+        with patch('%s.dict_for_html_document' % pb) as mock_dfhd:
+            mock_dfhd.return_value = {'foo': 'bar'}
+            res = self.cls.update_html_document(
+                'cid1234', 'subj', 'body', tags=['foo'], place_id='1234',
+                visibility='place', set_datetime=dt, inline_css=False,
+                jiveize=False
+            )
+        assert res == rval
+        assert self.mockapi.mock_calls == [
+            call.update_content('cid1234', {'foo': 'bar'}, update_date=dt)
+        ]
+        assert mock_dfhd.mock_calls == [
+            call(
+                'subj', 'body', tags=['foo'], place_id='1234',
+                visibility='place', inline_css=False, jiveize=False
+            )
+        ]
+
+
 class TestDictForHtmlDocument(ContentTester):
 
     def test_defaults(self):

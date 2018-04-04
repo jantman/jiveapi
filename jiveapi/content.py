@@ -162,6 +162,59 @@ class JiveContent(object):
             return self._api.create_content(content, publish_date=set_datetime)
         return self._api.create_content(content)
 
+    def update_html_document(
+        self, content_id, subject, html, tags=[], place_id=None,
+        visibility=None, set_datetime=None, inline_css=True, jiveize=True
+    ):
+        """
+        Update a HTML `Document <https://developers.jivesoftware.com/api/v3/clou
+        d/rest/DocumentEntity.html>`_ in Jive. This is a convenience wrapper
+        around :py:meth:`~.update_content` to assist with forming the content
+        JSON, as well as to assist with HTML handling.
+
+        :param content_id: the Jive contentID to update
+        :type content_id: str
+        :param subject: The subject / title of the Document.
+        :type subject: str
+        :param html: The HTML for the Document's content. See the notes in the
+          jiveapi package documentation about HTML handling.
+        :type html: str
+        :param tags: List of string tags to add to the Document
+        :type tags: list
+        :param place_id: If specified, post this document in the Place with the
+          specified placeID. According to the API documentation for the Document
+          type (linked above), this requires visibility to be set to "place".
+        :type place_id: str
+        :param visibility: The visibility policy for the Document. Valid values
+          per the API documentation are: ``all`` (anyone with appropriate
+          permissions can see the content), ``hidden`` (only the author can see
+          the content), or ``place`` (place permissions specify which users can
+          see the content).
+        :type visibility: str
+        :param set_datetime: datetime.datetime to set as the publish time. This
+          allows backdating Documents to match their source publish time.
+        :type set_datetime: datetime.datetime
+        :param inline_css: if True, pass input HTML through
+          :py:meth:`~.inline_css_etree` to convert any embedded CSS to inline
+          CSS so that Jive will preserve/respect it.
+        :type inline_css: bool
+        :param jiveize: if True, pass input HTML through
+          :py:meth:`~.jiveize_etree` to make it look more like how Jive styles
+          HTML internally.
+        :type jiveize: bool
+        :return: representation of the created Document content object
+        :rtype: dict
+        """
+        content = self.dict_for_html_document(
+            subject, html, tags=tags, place_id=place_id, visibility=visibility,
+            inline_css=inline_css, jiveize=jiveize
+        )
+        if set_datetime is not None:
+            return self._api.update_content(
+                content_id, content, update_date=set_datetime
+            )
+        return self._api.update_content(content_id, content)
+
     def dict_for_html_document(
         self, subject, html, tags=[], place_id=None, visibility=None,
         inline_css=True, jiveize=True
