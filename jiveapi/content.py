@@ -153,6 +153,7 @@ class JiveContent(object):
         :type jiveize: bool
         :return: representation of the created Document content object
         :rtype: dict
+        :raises: RequestFailedException, ContentConflictException
         """
         content = self.dict_for_html_document(
             subject, html, tags=tags, place_id=place_id, visibility=visibility,
@@ -204,6 +205,7 @@ class JiveContent(object):
         :type jiveize: bool
         :return: representation of the created Document content object
         :rtype: dict
+        :raises: RequestFailedException, ContentConflictException
         """
         content = self.dict_for_html_document(
             subject, html, tags=tags, place_id=place_id, visibility=visibility,
