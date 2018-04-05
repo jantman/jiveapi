@@ -36,10 +36,12 @@ Jason Antman <jason@jasonantman.com> <http://www.jasonantman.com>
 """
 
 import os
+import sys
 from datetime import datetime
 from urllib.parse import urljoin
 from unittest.mock import Mock, call, patch, DEFAULT, mock_open
 
+import pytest
 from lxml import etree
 from lxml.html import builder as E
 
@@ -741,6 +743,10 @@ class TestIsLocalImage(object):
 
 class TestLoadImageFromDisk(ContentTester):
 
+    @pytest.mark.skipif(
+        sys.version_info[0:2] == (3, 4),
+        reason='mock_open broken on py34'
+    )
     def test_rel_path(self):
         m_sha256 = Mock()
         m_sha256.hexdigest.return_value = sha256str
@@ -764,6 +770,10 @@ class TestLoadImageFromDisk(ContentTester):
             call().__exit__(None, None, None)
         ]
 
+    @pytest.mark.skipif(
+        sys.version_info[0:2] == (3, 4),
+        reason='mock_open broken on py34'
+    )
     def test_abs_path(self):
         m_sha256 = Mock()
         m_sha256.hexdigest.return_value = sha256str
