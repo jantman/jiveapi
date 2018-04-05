@@ -35,10 +35,14 @@ Jason Antman <jason@jasonantman.com> <http://www.jasonantman.com>
 ##################################################################################
 """
 
+import os
 import logging
+import imghdr
+import hashlib
 
 from lxml import etree
 from premailer import Premailer
+from urllib.parse import urlparse
 
 from jiveapi.version import VERSION, PROJECT_URL
 
@@ -103,25 +107,54 @@ def newline_to_br(elem):
 
 
 class JiveContent(object):
+    """
+    High-level Jive API interface that wraps :py:class:`~.JiveApi` with
+    convenience methods for common tasks relating to manipulating
+    `Content <https://developers.jivesoftware.com/api/v3/cloud/rest/ContentEntit
+    y.html>`_ and `Image <https://developers.jivesoftware.com/api/v3/cloud/rest
+    /ImageEntity.html>`_ objects.
 
-    def __init__(self, api):
+    Methods in this class that involve uploading images require storing state
+    out-of-band. For information on that state, see
+    :ref:`JiveContent Images Dict Format <images-dict-format>`.
+    """
+
+    def __init__(self, api, image_dir=None):
         """
-        Initialize the JiveContent wrapper.
-
         :param api: authenticated API instance
         :type api: jiveapi.api.JiveApi
+        :param image_dir: The directory/path on disk to load images relative to.
+          This should be an absolute path. If not specified, the result of
+          :py:func:`os.getcwd` will be used.
+        :type image_dir: str
         """
         self._api = api
+        if image_dir is None:
+            self._image_dir = os.getcwd()
+        else:
+            self._image_dir = image_dir
+        logger.debug(
+            'Initializing JiveContent with image_dir=%s', self._image_dir
+        )
 
     def create_html_document(
         self, subject, html, tags=[], place_id=None, visibility=None,
-        set_datetime=None, inline_css=True, jiveize=True
+        set_datetime=None, inline_css=True, jiveize=True, handle_images=True
     ):
         """
         Create a HTML `Document <https://developers.jivesoftware.com/api/v3/clou
         d/rest/DocumentEntity.html>`_ in Jive. This is a convenience wrapper
         around :py:meth:`~.create_content` to assist with forming the content
         JSON, as well as to assist with HTML handling.
+
+        The format of the second element of the return value is the images dict
+        format described in this class under
+        :ref:`JiveContent Images Dict Format <images-dict-format>`.
+
+        **Important:** In order to update the Document in the future, the entire
+        return value of this method must be externally persisted and passed in
+        to future method calls via the ``content_id`` and ``images``
+        parameters.
 
         :param subject: The subject / title of the Document.
         :type subject: str
@@ -151,27 +184,53 @@ class JiveContent(object):
           :py:meth:`~.jiveize_etree` to make it look more like how Jive styles
           HTML internally.
         :type jiveize: bool
-        :return: representation of the created Document content object
-        :rtype: dict
+        :param handle_images: if True, pass input HTML through
+          :py:meth:`~._upload_images` to upload all local images to Jive.
+        :type handle_images: bool
+        :return: 2-tuple of (``dict`` representation of the created Document
+          from the Jive API, ``dict`` images data to persist for updates)
+        :rtype: tuple
         :raises: RequestFailedException, ContentConflictException
         """
-        content = self.dict_for_html_document(
+        logger.debug('Generating API call dict for content')
+        content, images = self.dict_for_html_document(
             subject, html, tags=tags, place_id=place_id, visibility=visibility,
-            inline_css=inline_css, jiveize=jiveize
+            inline_css=inline_css, jiveize=jiveize, handle_images=handle_images
         )
+        logger.debug('API call dict ready to send')
         if set_datetime is not None:
-            return self._api.create_content(content, publish_date=set_datetime)
-        return self._api.create_content(content)
+            res = self._api.create_content(content, publish_date=set_datetime)
+        else:
+            res = self._api.create_content(content)
+        return {
+            'entityType': res['entityType'],
+            'id': res['id'],
+            'html_ref': res.get('resources', {}).get('html', {}).get('ref', ''),
+            'contentID': res['contentID'],
+            'type': res['type'],
+            'typeCode': res['typeCode'],
+            'images': images
+        }
 
     def update_html_document(
         self, content_id, subject, html, tags=[], place_id=None,
-        visibility=None, set_datetime=None, inline_css=True, jiveize=True
+        visibility=None, set_datetime=None, inline_css=True, jiveize=True,
+        handle_images=True
     ):
         """
         Update a HTML `Document <https://developers.jivesoftware.com/api/v3/clou
         d/rest/DocumentEntity.html>`_ in Jive. This is a convenience wrapper
         around :py:meth:`~.update_content` to assist with forming the content
         JSON, as well as to assist with HTML handling.
+
+        The format of the second element of the return value is the images dict
+        format described in this class under
+        :ref:`JiveContent Images Dict Format <images-dict-format>`.
+
+        **Important:** In order to update the Document in the future, the entire
+        return value of this method must be externally persisted and passed in
+        to future method calls via the ``content_id`` and ``images``
+        parameters.
 
         :param content_id: the Jive contentID to update
         :type content_id: str
@@ -203,28 +262,52 @@ class JiveContent(object):
           :py:meth:`~.jiveize_etree` to make it look more like how Jive styles
           HTML internally.
         :type jiveize: bool
-        :return: representation of the created Document content object
-        :rtype: dict
+        :param handle_images: if True, pass input HTML through
+          :py:meth:`~._upload_images` to upload all local images to Jive.
+        :type handle_images: bool
+        :return: 2-tuple of (``dict`` representation of the updated Document
+          from the Jive API, ``dict`` images data to persist for updates)
+        :rtype: tuple
         :raises: RequestFailedException, ContentConflictException
         """
-        content = self.dict_for_html_document(
+        logger.debug('Generating API call dict for content')
+        content, images = self.dict_for_html_document(
             subject, html, tags=tags, place_id=place_id, visibility=visibility,
-            inline_css=inline_css, jiveize=jiveize
+            inline_css=inline_css, jiveize=jiveize, handle_images=handle_images
         )
+        logger.debug('API call dict ready to send')
         if set_datetime is not None:
-            return self._api.update_content(
+            res = self._api.update_content(
                 content_id, content, update_date=set_datetime
             )
-        return self._api.update_content(content_id, content)
+        else:
+            res = self._api.update_content(content_id, content)
+        return {
+            'entityType': res['entityType'],
+            'id': res['id'],
+            'html_ref': res.get('resources', {}).get('html', {}).get('ref', ''),
+            'contentID': res['contentID'],
+            'type': res['type'],
+            'typeCode': res['typeCode'],
+            'images': images
+        }
 
     def dict_for_html_document(
         self, subject, html, tags=[], place_id=None, visibility=None,
-        inline_css=True, jiveize=True
+        inline_css=True, jiveize=True, handle_images=True
     ):
         """
         Generate the API (dict/JSON) representation of a HTML
         `Document <https://developers.jivesoftware.com/api/v3/cloud/rest/Documen
         tEntity.html>`_ in Jive, used by :py:meth:`~.create_html_document`.
+
+        The format of the second element of the return value is the images dict
+        format described in this class under
+        :ref:`JiveContent Images Dict Format <images-dict-format>`.
+
+        **Important:** The images dict (second element of return value) must be
+        externally persisted or else all images will be re-uploaded every time
+        this is run.
 
         :param subject: The subject / title of the Document.
         :type subject: str
@@ -254,11 +337,17 @@ class JiveContent(object):
           :py:meth:`~.jiveize_etree` to make it look more like how Jive styles
           HTML internally.
         :type jiveize: bool
-        :return: representation of the desired Document ready to pass to the
-          Jive API.
-        :rtype: dict
+        :param handle_images: if True, pass input HTML through
+          :py:meth:`~._upload_images` to upload all local images to Jive.
+        :type handle_images: bool
+        :return: 2-tuple of (``dict`` representation of the desired Document
+          ready to pass to the Jive API, ``dict`` images data to persist for
+          updates)
+        :rtype: tuple
         """
-        if jiveize or inline_css:
+        images = {}
+        if jiveize or inline_css or handle_images:
+            logger.debug('Converting input HTML to etree')
             doc = JiveContent.html_to_etree(html)
             if inline_css:
                 logger.debug('Passing input HTML through inline_css_etree()')
@@ -266,8 +355,12 @@ class JiveContent(object):
             if jiveize:
                 logger.debug('Passing input HTML through jiveize_etree()')
                 doc = JiveContent.jiveize_etree(doc)
+            if handle_images:
+                logger.debug('Passing input HTML through _upload_images()')
+                doc, images = self._upload_images(doc)
             html = etree.tostring(doc)
         if isinstance(html, type(b'')):
+            logger.debug('decode() etree.tostring() output')
             html = html.decode()
         content = {
             'type': 'document',
@@ -289,7 +382,7 @@ class JiveContent(object):
             )
         if visibility is not None:
             content['visibility'] = visibility
-        return content
+        return content, images
 
     @staticmethod
     def html_to_etree(html):
@@ -393,3 +486,109 @@ class JiveContent(object):
                 continue
             element.attrib['style'] = TAGSTYLES[element.tag]
         return root
+
+    @staticmethod
+    def _is_local_image(src):
+        """
+        Given the string path to an image, return True if it appears to be a
+        local image and False if it appears to be a remote image. We consider
+        an image remote (return False) if :py:func:`urllib.parse.urlparse`
+        returns an empty string for ``scheme``, or local (return True)
+        otherwise. Also returns False if ``src`` is ``None``.
+
+        :param src: the value of image tag's ``src`` attribute
+        :type src: str
+        :return: True if the image appears to be local (relative or absolute
+          path) or False if it appears to be remote
+        :rtype: bool
+        """
+        if src is None:
+            return False
+        p = urlparse(src)
+        if p.scheme == '':
+            return True
+        return False
+
+    def _load_image_from_disk(self, img_path):
+        """
+        Given the path to an image taken from the ``src`` attribute of an
+        ``img`` tag, load it from disk. If the path is relative, it will be
+        loaded relative to ``self._image_dir``. Return a 2-tuple of a string
+        describing the Content-Type of the image and the raw bytes of the image
+        data. The content type is determined using the Python standard
+        library's :py:func:`imghdr.what`.
+
+        :param img_path: path to the image on disk
+        :type img_path: str
+        :return: (``str`` Content-Type, ``bytes`` binary image content read
+          from disk)
+        :rtype: tuple
+        """
+        logger.debug('Load image from disk: %s', img_path)
+        if not os.path.isabs(img_path):
+            img_path = os.path.abspath(os.path.join(self._image_dir, img_path))
+            logger.debug('Image absolute path: %s', img_path)
+        with open(img_path, 'rb') as fh:
+            imgdata = fh.read()
+        content_type = 'image/' + imghdr.what(None, imgdata)
+        logger.debug(
+            'Loaded %d byte image; found content-type as: %s',
+            len(imgdata), content_type
+        )
+        return content_type, imgdata
+
+    def _upload_images(self, root, images={}):
+        """
+        Given the root Element of a (HTML) document, find all ``img`` tags. For
+        any of them that have a ``src`` attribute pointing to a local image (as
+        determined by :py:meth:`~._is_local_image`), read the corresponding
+        image file from disk, upload it to the Jive server, and then replace the
+        ``src`` attribute with the upload temporary URL and add an entry to
+        the image dictionary (second element of the return value).
+
+        The format of the second element of the return value is the images dict
+        format described in this class under
+        :ref:`JiveContent Images Dict Format <images-dict-format>`.
+
+        **Important:** The images dict (second element of return value) must be
+        externally persisted.
+
+        :param root: root node of etree to inline CSS in
+        :type root: ``lxml.etree._Element``
+        :return: 2-tuple of (``root`` with attributes modified as appropriate,
+          and a dict mapping the original image paths to the API response data
+          for them)
+        :rtype: tuple
+        """
+        for img in root.xpath('//img'):
+            src = img.get('src')
+            if not JiveContent._is_local_image(src):
+                logger.debug('Non-local image: %s', src)
+                continue
+            # if it's local, get the data, content type, and filename
+            img_content_type, img_data = self._load_image_from_disk(src)
+            img_sha256 = hashlib.sha256(img_data).hexdigest()
+            logger.debug('Image %s sha256: %s', src, img_sha256)
+            img_fname = os.path.basename(src)
+            logger.debug(
+                'Uploading Image with filename "%s" and MIME Content-Type '
+                '%s from img src="%s"', img_fname, img_content_type, src
+            )
+            # do the upload and capture response and Location
+            img_uri, api_response = self._api.upload_image(
+                img_data, img_fname, img_content_type
+            )
+            logger.debug(
+                'Image uploaded for "%s"; id=%s Location=%s', src,
+                api_response['id'], img_uri
+            )
+            # update image state dict
+            images[src] = {
+                'location': img_uri,
+                'jive_object': api_response,
+                'sha256': img_sha256
+            }
+            logger.debug('Rewrite img src from "%s" to "%s"', src, img_uri)
+            # set the src attribute to the Location
+            img['src'] = img_uri
+        return root, images

@@ -56,8 +56,19 @@ class TestInit(object):
 
     def test_init(self):
         m_api = Mock()
-        cls = JiveContent(m_api)
+        with patch('%s.os.getcwd' % pbm) as mock_getcwd:
+            mock_getcwd.return_value = '/my/cwd'
+            cls = JiveContent(m_api)
         assert cls._api == m_api
+        assert cls._image_dir == '/my/cwd'
+
+    def test_init_image_dir(self):
+        m_api = Mock()
+        with patch('%s.os.getcwd' % pbm) as mock_getcwd:
+            mock_getcwd.return_value = '/my/cwd'
+            cls = JiveContent(m_api, image_dir='/foo/bar')
+        assert cls._api == m_api
+        assert cls._image_dir == '/foo/bar'
 
 
 class TestNewlineToBr(object):
@@ -84,45 +95,86 @@ class ContentTester(object):
         self.mockapi.abs_url.side_effect = se_abs_url
         self.cls = JiveContent(self.mockapi)
 
+    def example_doc(self):
+        return {
+            'entityType': 'docment',
+            'id': '12345',
+            'resources': {
+                'editHtml': {
+                    'allowed': ['GET', 'PUT'],
+                    'ref': 'http://jive.example.com/docs/DOC-12345/edit'
+                },
+                'html': {
+                    'allowed': ['GET'],
+                    'ref': 'http://jive.example.com/docs/DOC-12345'
+                }
+            },
+            'contentID': '6789',
+            'content': {
+                'text': '<p>Some Html</p>',
+                'editable': False,
+                'type': 'text/html'
+            },
+            'status': 'published',
+            'subject': 'My Subject',
+            'type': 'docment',
+            'typeCode': 102
+        }
+
 
 class TestCreateHtmlDocument(ContentTester):
 
     def test_defaults(self):
-        rval = Mock()
-        self.mockapi.create_content.return_value = rval
+        self.mockapi.create_content.return_value = self.example_doc()
         with patch('%s.dict_for_html_document' % pb) as mock_dfhd:
-            mock_dfhd.return_value = {'foo': 'bar'}
+            mock_dfhd.return_value = ({'foo': 'bar'}, {'images': 'foo'})
             res = self.cls.create_html_document('subj', 'body')
-        assert res == rval
+        assert res == {
+            'entityType': 'docment',
+            'id': '12345',
+            'html_ref': 'http://jive.example.com/docs/DOC-12345',
+            'contentID': '6789',
+            'type': 'docment',
+            'typeCode': 102,
+            'images': {'images': 'foo'}
+        }
         assert self.mockapi.mock_calls == [
             call.create_content({'foo': 'bar'})
         ]
         assert mock_dfhd.mock_calls == [
             call(
                 'subj', 'body', tags=[], place_id=None, visibility=None,
-                inline_css=True, jiveize=True
+                inline_css=True, jiveize=True, handle_images=True
             )
         ]
 
     def test_non_defaults(self):
         dt = datetime(2018, 2, 13, 11, 52, 18, tzinfo=FixedOffset(-60, 'foo'))
-        rval = Mock()
-        self.mockapi.create_content.return_value = rval
+        self.mockapi.create_content.return_value = self.example_doc()
         with patch('%s.dict_for_html_document' % pb) as mock_dfhd:
-            mock_dfhd.return_value = {'foo': 'bar'}
+            mock_dfhd.return_value = ({'foo': 'bar'}, {'images': 'foo'})
             res = self.cls.create_html_document(
                 'subj', 'body', tags=['foo'], place_id='1234',
                 visibility='place', set_datetime=dt, inline_css=False,
-                jiveize=False
+                jiveize=False, handle_images=False
             )
-        assert res == rval
+        assert res == {
+            'entityType': 'docment',
+            'id': '12345',
+            'html_ref': 'http://jive.example.com/docs/DOC-12345',
+            'contentID': '6789',
+            'type': 'docment',
+            'typeCode': 102,
+            'images': {'images': 'foo'}
+        }
         assert self.mockapi.mock_calls == [
             call.create_content({'foo': 'bar'}, publish_date=dt)
         ]
         assert mock_dfhd.mock_calls == [
             call(
                 'subj', 'body', tags=['foo'], place_id='1234',
-                visibility='place', inline_css=False, jiveize=False
+                visibility='place', inline_css=False, jiveize=False,
+                handle_images=False
             )
         ]
 
@@ -130,41 +182,56 @@ class TestCreateHtmlDocument(ContentTester):
 class TestUpdateHtmlDocument(ContentTester):
 
     def test_defaults(self):
-        rval = Mock()
-        self.mockapi.update_content.return_value = rval
+        self.mockapi.update_content.return_value = self.example_doc()
         with patch('%s.dict_for_html_document' % pb) as mock_dfhd:
-            mock_dfhd.return_value = {'foo': 'bar'}
-            res = self.cls.update_html_document('cid1234', 'subj', 'body')
-        assert res == rval
+            mock_dfhd.return_value = ({'foo': 'bar'}, {'images': 'foo'})
+            res = self.cls.update_html_document('6789', 'subj', 'body')
+        assert res == {
+            'entityType': 'docment',
+            'id': '12345',
+            'html_ref': 'http://jive.example.com/docs/DOC-12345',
+            'contentID': '6789',
+            'type': 'docment',
+            'typeCode': 102,
+            'images': {'images': 'foo'}
+        }
         assert self.mockapi.mock_calls == [
-            call.update_content('cid1234', {'foo': 'bar'})
+            call.update_content('6789', {'foo': 'bar'})
         ]
         assert mock_dfhd.mock_calls == [
             call(
                 'subj', 'body', tags=[], place_id=None, visibility=None,
-                inline_css=True, jiveize=True
+                inline_css=True, jiveize=True, handle_images=True
             )
         ]
 
     def test_non_defaults(self):
         dt = datetime(2018, 2, 13, 11, 52, 18, tzinfo=FixedOffset(-60, 'foo'))
-        rval = Mock()
-        self.mockapi.update_content.return_value = rval
+        self.mockapi.update_content.return_value = self.example_doc()
         with patch('%s.dict_for_html_document' % pb) as mock_dfhd:
-            mock_dfhd.return_value = {'foo': 'bar'}
+            mock_dfhd.return_value = ({'foo': 'bar'}, {'images': 'foo'})
             res = self.cls.update_html_document(
-                'cid1234', 'subj', 'body', tags=['foo'], place_id='1234',
+                '6789', 'subj', 'body', tags=['foo'], place_id='1234',
                 visibility='place', set_datetime=dt, inline_css=False,
-                jiveize=False
+                jiveize=False, handle_images=False
             )
-        assert res == rval
+        assert res == {
+            'entityType': 'docment',
+            'id': '12345',
+            'html_ref': 'http://jive.example.com/docs/DOC-12345',
+            'contentID': '6789',
+            'type': 'docment',
+            'typeCode': 102,
+            'images': {'images': 'foo'}
+        }
         assert self.mockapi.mock_calls == [
-            call.update_content('cid1234', {'foo': 'bar'}, update_date=dt)
+            call.update_content('6789', {'foo': 'bar'}, update_date=dt)
         ]
         assert mock_dfhd.mock_calls == [
             call(
                 'subj', 'body', tags=['foo'], place_id='1234',
-                visibility='place', inline_css=False, jiveize=False
+                visibility='place', inline_css=False, jiveize=False,
+                handle_images=False
             )
         ]
 
@@ -175,19 +242,22 @@ class TestDictForHtmlDocument(ContentTester):
         m_hte = Mock()
         m_ice = Mock()
         m_je = Mock()
+        m_ui = Mock()
         with patch.multiple(
             pb,
             html_to_etree=DEFAULT,
             inline_css_etree=DEFAULT,
-            jiveize_etree=DEFAULT
+            jiveize_etree=DEFAULT,
+            _upload_images=DEFAULT
         ) as mocks:
             with patch('%s.etree.tostring' % pbm) as mock_tostring:
                 mock_tostring.return_value = 'fixed_string'
                 mocks['html_to_etree'].return_value = m_hte
                 mocks['inline_css_etree'].return_value = m_ice
                 mocks['jiveize_etree'].return_value = m_je
+                mocks['_upload_images'].return_value = m_ui, {'images': 'foo'}
                 res = self.cls.dict_for_html_document('subj', 'body')
-        assert res == {
+        assert res == ({
             'type': 'document',
             'subject': 'subj',
             'content': {
@@ -198,32 +268,37 @@ class TestDictForHtmlDocument(ContentTester):
                 'displayName': 'Python jiveapi v%s' % VERSION,
                 'url': PROJECT_URL
             }
-        }
+        }, {'images': 'foo'})
         assert mocks['html_to_etree'].mock_calls == [call('body')]
         assert mocks['inline_css_etree'].mock_calls == [call(m_hte)]
         assert mocks['jiveize_etree'].mock_calls == [call(m_ice)]
-        assert mock_tostring.mock_calls == [call(m_je)]
+        assert mocks['_upload_images'].mock_calls == [call(m_je)]
+        assert mock_tostring.mock_calls == [call(m_ui)]
         assert self.mockapi.mock_calls == []
 
     def test_no_modify(self):
         m_hte = Mock()
         m_ice = Mock()
         m_je = Mock()
+        m_ui = Mock()
         with patch.multiple(
             pb,
             html_to_etree=DEFAULT,
             inline_css_etree=DEFAULT,
-            jiveize_etree=DEFAULT
+            jiveize_etree=DEFAULT,
+            _upload_images=DEFAULT
         ) as mocks:
             with patch('%s.etree.tostring' % pbm) as mock_tostring:
                 mock_tostring.return_value = 'fixed_string'
                 mocks['html_to_etree'].return_value = m_hte
                 mocks['inline_css_etree'].return_value = m_ice
                 mocks['jiveize_etree'].return_value = m_je
+                mocks['_upload_images'].return_value = m_ui, {'images': 'foo'}
                 res = self.cls.dict_for_html_document(
-                    'subj', 'body', jiveize=False, inline_css=False
+                    'subj', 'body', jiveize=False, inline_css=False,
+                    handle_images=False
                 )
-        assert res == {
+        assert res == ({
             'type': 'document',
             'subject': 'subj',
             'content': {
@@ -234,10 +309,11 @@ class TestDictForHtmlDocument(ContentTester):
                 'displayName': 'Python jiveapi v%s' % VERSION,
                 'url': PROJECT_URL
             }
-        }
+        }, {})
         assert mocks['html_to_etree'].mock_calls == []
         assert mocks['inline_css_etree'].mock_calls == []
         assert mocks['jiveize_etree'].mock_calls == []
+        assert mocks['_upload_images'].mock_calls == []
         assert mock_tostring.mock_calls == []
         assert self.mockapi.mock_calls == []
 
@@ -245,21 +321,24 @@ class TestDictForHtmlDocument(ContentTester):
         m_hte = Mock()
         m_ice = Mock()
         m_je = Mock()
+        m_ui = Mock()
         with patch.multiple(
             pb,
             html_to_etree=DEFAULT,
             inline_css_etree=DEFAULT,
-            jiveize_etree=DEFAULT
+            jiveize_etree=DEFAULT,
+            _upload_images=DEFAULT
         ) as mocks:
             with patch('%s.etree.tostring' % pbm) as mock_tostring:
                 mock_tostring.return_value = 'fixed_string'
                 mocks['html_to_etree'].return_value = m_hte
                 mocks['inline_css_etree'].return_value = m_ice
                 mocks['jiveize_etree'].return_value = m_je
+                mocks['_upload_images'].return_value = m_ui, {'images': 'foo'}
                 res = self.cls.dict_for_html_document(
                     'subj', 'body', jiveize=False
                 )
-        assert res == {
+        assert res == ({
             'type': 'document',
             'subject': 'subj',
             'content': {
@@ -270,32 +349,36 @@ class TestDictForHtmlDocument(ContentTester):
                 'displayName': 'Python jiveapi v%s' % VERSION,
                 'url': PROJECT_URL
             }
-        }
+        }, {'images': 'foo'})
         assert mocks['html_to_etree'].mock_calls == [call('body')]
         assert mocks['inline_css_etree'].mock_calls == [call(m_hte)]
         assert mocks['jiveize_etree'].mock_calls == []
-        assert mock_tostring.mock_calls == [call(m_ice)]
+        assert mocks['_upload_images'].mock_calls == [call(m_ice)]
+        assert mock_tostring.mock_calls == [call(m_ui)]
         assert self.mockapi.mock_calls == []
 
     def test_no_inline(self):
         m_hte = Mock()
         m_ice = Mock()
         m_je = Mock()
+        m_ui = Mock()
         with patch.multiple(
             pb,
             html_to_etree=DEFAULT,
             inline_css_etree=DEFAULT,
-            jiveize_etree=DEFAULT
+            jiveize_etree=DEFAULT,
+            _upload_images=DEFAULT
         ) as mocks:
             with patch('%s.etree.tostring' % pbm) as mock_tostring:
                 mock_tostring.return_value = 'fixed_string'
                 mocks['html_to_etree'].return_value = m_hte
                 mocks['inline_css_etree'].return_value = m_ice
                 mocks['jiveize_etree'].return_value = m_je
+                mocks['_upload_images'].return_value = m_ui, {'images': 'foo'}
                 res = self.cls.dict_for_html_document(
                     'subj', 'body', inline_css=False
                 )
-        assert res == {
+        assert res == ({
             'type': 'document',
             'subject': 'subj',
             'content': {
@@ -306,32 +389,36 @@ class TestDictForHtmlDocument(ContentTester):
                 'displayName': 'Python jiveapi v%s' % VERSION,
                 'url': PROJECT_URL
             }
-        }
+        }, {'images': 'foo'})
         assert mocks['html_to_etree'].mock_calls == [call('body')]
         assert mocks['inline_css_etree'].mock_calls == []
         assert mocks['jiveize_etree'].mock_calls == [call(m_hte)]
-        assert mock_tostring.mock_calls == [call(m_je)]
+        assert mocks['_upload_images'].mock_calls == [call(m_je)]
+        assert mock_tostring.mock_calls == [call(m_ui)]
         assert self.mockapi.mock_calls == []
 
     def test_tags(self):
         m_hte = Mock()
         m_ice = Mock()
         m_je = Mock()
+        m_ui = Mock()
         with patch.multiple(
             pb,
             html_to_etree=DEFAULT,
             inline_css_etree=DEFAULT,
-            jiveize_etree=DEFAULT
+            jiveize_etree=DEFAULT,
+            _upload_images=DEFAULT
         ) as mocks:
             with patch('%s.etree.tostring' % pbm) as mock_tostring:
                 mock_tostring.return_value = b'fixed_string'
                 mocks['html_to_etree'].return_value = m_hte
                 mocks['inline_css_etree'].return_value = m_ice
                 mocks['jiveize_etree'].return_value = m_je
+                mocks['_upload_images'].return_value = m_ui, {'images': 'foo'}
                 res = self.cls.dict_for_html_document(
                     'subj', 'body', tags=['foo', 'bar', 'baz']
                 )
-        assert res == {
+        assert res == ({
             'type': 'document',
             'subject': 'subj',
             'content': {
@@ -343,29 +430,31 @@ class TestDictForHtmlDocument(ContentTester):
                 'displayName': 'Python jiveapi v%s' % VERSION,
                 'url': PROJECT_URL
             }
-        }
+        }, {'images': 'foo'})
         assert self.mockapi.mock_calls == []
 
     def test_place(self):
         m_hte = Mock()
         m_ice = Mock()
         m_je = Mock()
+        m_ui = Mock()
         with patch.multiple(
             pb,
             html_to_etree=DEFAULT,
             inline_css_etree=DEFAULT,
-            jiveize_etree=DEFAULT
+            jiveize_etree=DEFAULT,
+            _upload_images=DEFAULT
         ) as mocks:
             with patch('%s.etree.tostring' % pbm) as mock_tostring:
                 mock_tostring.return_value = 'fixed_string'
                 mocks['html_to_etree'].return_value = m_hte
                 mocks['inline_css_etree'].return_value = m_ice
                 mocks['jiveize_etree'].return_value = m_je
+                mocks['_upload_images'].return_value = m_ui, {'images': 'foo'}
                 res = self.cls.dict_for_html_document(
                     'subj', 'body', place_id='12345'
                 )
-
-        assert res == {
+        assert res == ({
             'type': 'document',
             'subject': 'subj',
             'content': {
@@ -377,7 +466,7 @@ class TestDictForHtmlDocument(ContentTester):
                 'displayName': 'Python jiveapi v%s' % VERSION,
                 'url': PROJECT_URL
             }
-        }
+        }, {'images': 'foo'})
         assert self.mockapi.mock_calls == [
             call.abs_url('core/v3/places/12345')
         ]
@@ -386,21 +475,24 @@ class TestDictForHtmlDocument(ContentTester):
         m_hte = Mock()
         m_ice = Mock()
         m_je = Mock()
+        m_ui = Mock()
         with patch.multiple(
             pb,
             html_to_etree=DEFAULT,
             inline_css_etree=DEFAULT,
-            jiveize_etree=DEFAULT
+            jiveize_etree=DEFAULT,
+            _upload_images=DEFAULT
         ) as mocks:
             with patch('%s.etree.tostring' % pbm) as mock_tostring:
                 mock_tostring.return_value = 'fixed_string'
                 mocks['html_to_etree'].return_value = m_hte
                 mocks['inline_css_etree'].return_value = m_ice
                 mocks['jiveize_etree'].return_value = m_je
+                mocks['_upload_images'].return_value = m_ui, {'images': 'foo'}
                 res = self.cls.dict_for_html_document(
                     'subj', 'body', visibility='hidden'
                 )
-        assert res == {
+        assert res == ({
             'type': 'document',
             'subject': 'subj',
             'content': {
@@ -412,7 +504,7 @@ class TestDictForHtmlDocument(ContentTester):
                 'displayName': 'Python jiveapi v%s' % VERSION,
                 'url': PROJECT_URL
             }
-        }
+        }, {'images': 'foo'})
         assert self.mockapi.mock_calls == []
 
 
@@ -555,3 +647,49 @@ class TestHtmlAcceptance(object):
             no_sourcecode_style=False
         )
         assert etree.tostring(res).decode() == expected
+
+
+class TestIsLocalImage(object):
+
+    def test_none(self):
+        assert JiveContent._is_local_image(None) is False
+
+    def test_http(self):
+        assert JiveContent._is_local_image(
+            'http://www.example.com/foo.png'
+        ) is False
+
+    def test_https(self):
+        assert JiveContent._is_local_image(
+            'https://www.example.com/foo.png'
+        ) is False
+
+    def test_ftp(self):
+        assert JiveContent._is_local_image(
+            'ftp://www.example.com/foo.png'
+        ) is False
+
+    def test_absolute_path(self):
+        assert JiveContent._is_local_image(
+            '/images/bar/foo.png'
+        ) is True
+
+    def test_hostname_absolute_path(self):
+        assert JiveContent._is_local_image(
+            '/www.example.com/images/foo.png'
+        ) is True
+
+    def test_relative_path(self):
+        assert JiveContent._is_local_image(
+            'bar/foo.png'
+        ) is True
+
+    def test_hostname_relative_path(self):
+        assert JiveContent._is_local_image(
+            'www.example.com/images/foo.png'
+        ) is True
+
+
+class TestUploadImages(object):
+
+    pass
