@@ -9,6 +9,7 @@ Contents
 .. toctree::
    :maxdepth: 4
 
+   Usage <usage>
    API <modules>
    Changelog <changes>
 
