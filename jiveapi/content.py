@@ -215,7 +215,7 @@ class JiveContent(object):
     def update_html_document(
         self, content_id, subject, html, tags=[], place_id=None,
         visibility=None, set_datetime=None, inline_css=True, jiveize=True,
-        handle_images=True
+        handle_images=True, images={}
     ):
         """
         Update a HTML `Document <https://developers.jivesoftware.com/api/v3/clou
@@ -265,6 +265,11 @@ class JiveContent(object):
         :param handle_images: if True, pass input HTML through
           :py:meth:`~._upload_images` to upload all local images to Jive.
         :type handle_images: bool
+        :param images: a dict of information about images that have been already
+          uploaded for this Document. This parameter should be the value of the
+          ``images`` key from the return value of this method or of
+          :py:meth:`~.create_html_content`.
+        :type images: dict
         :return: 2-tuple of (``dict`` representation of the updated Document
           from the Jive API, ``dict`` images data to persist for updates)
         :rtype: tuple
@@ -273,7 +278,8 @@ class JiveContent(object):
         logger.debug('Generating API call dict for content')
         content, images = self.dict_for_html_document(
             subject, html, tags=tags, place_id=place_id, visibility=visibility,
-            inline_css=inline_css, jiveize=jiveize, handle_images=handle_images
+            inline_css=inline_css, jiveize=jiveize, handle_images=handle_images,
+            images=images
         )
         logger.debug('API call dict ready to send')
         if set_datetime is not None:
@@ -294,7 +300,7 @@ class JiveContent(object):
 
     def dict_for_html_document(
         self, subject, html, tags=[], place_id=None, visibility=None,
-        inline_css=True, jiveize=True, handle_images=True
+        inline_css=True, jiveize=True, handle_images=True, images={}
     ):
         """
         Generate the API (dict/JSON) representation of a HTML
@@ -340,12 +346,16 @@ class JiveContent(object):
         :param handle_images: if True, pass input HTML through
           :py:meth:`~._upload_images` to upload all local images to Jive.
         :type handle_images: bool
+        :param images: a dict of information about images that have been already
+          uploaded for this Document. This parameter should be the value of the
+          ``images`` key from the return value of this method (or of
+          :py:meth:`~.create_html_content` or :py:meth:`~.update_html_content`).
+        :type images: dict
         :return: 2-tuple of (``dict`` representation of the desired Document
           ready to pass to the Jive API, ``dict`` images data to persist for
           updates)
         :rtype: tuple
         """
-        images = {}
         if jiveize or inline_css or handle_images:
             logger.debug('Converting input HTML to etree')
             doc = JiveContent.html_to_etree(html)
@@ -357,7 +367,7 @@ class JiveContent(object):
                 doc = JiveContent.jiveize_etree(doc)
             if handle_images:
                 logger.debug('Passing input HTML through _upload_images()')
-                doc, images = self._upload_images(doc)
+                doc, images = self._upload_images(doc, images)
             html = etree.tostring(doc)
         if isinstance(html, type(b'')):
             logger.debug('decode() etree.tostring() output')
@@ -513,15 +523,15 @@ class JiveContent(object):
         """
         Given the path to an image taken from the ``src`` attribute of an
         ``img`` tag, load it from disk. If the path is relative, it will be
-        loaded relative to ``self._image_dir``. Return a 2-tuple of a string
-        describing the Content-Type of the image and the raw bytes of the image
-        data. The content type is determined using the Python standard
-        library's :py:func:`imghdr.what`.
+        loaded relative to ``self._image_dir``. Return a 3-tuple of a string
+        describing the Content-Type of the image, the raw bytes of the image
+        data, and the sha256 sum of the image data. The content type is
+        determined using the Python standard library's :py:func:`imghdr.what`.
 
         :param img_path: path to the image on disk
         :type img_path: str
         :return: (``str`` Content-Type, ``bytes`` binary image content read
-          from disk)
+          from disk, ``str`` hex sha256 sum of ``bytes``)
         :rtype: tuple
         """
         logger.debug('Load image from disk: %s', img_path)
@@ -535,7 +545,8 @@ class JiveContent(object):
             'Loaded %d byte image; found content-type as: %s',
             len(imgdata), content_type
         )
-        return content_type, imgdata
+        img_sha256 = hashlib.sha256(imgdata).hexdigest()
+        return content_type, imgdata, img_sha256
 
     def _upload_images(self, root, images={}):
         """
@@ -566,9 +577,22 @@ class JiveContent(object):
                 logger.debug('Non-local image: %s', src)
                 continue
             # if it's local, get the data, content type, and filename
-            img_content_type, img_data = self._load_image_from_disk(src)
-            img_sha256 = hashlib.sha256(img_data).hexdigest()
-            logger.debug('Image %s sha256: %s', src, img_sha256)
+            img_content_type, img_data, img_sha256 = self._load_image_from_disk(
+                src
+            )
+            if img_sha256 in images:
+                logger.debug(
+                    'Image %s already uploaded per images dict; location=%s '
+                    'id=%s (identified via sha256=%s)', src,
+                    images[img_sha256]['location'],
+                    images[img_sha256]['jive_object']['id'], img_sha256
+                )
+                img.set('src', images[img_sha256]['location'])
+                continue
+            logger.debug(
+                'Image %s content-type=%s sha256=%s',
+                src, img_content_type, img_sha256
+            )
             img_fname = os.path.basename(src)
             logger.debug(
                 'Uploading Image with filename "%s" and MIME Content-Type '
@@ -583,12 +607,12 @@ class JiveContent(object):
                 api_response['id'], img_uri
             )
             # update image state dict
-            images[src] = {
+            images[img_sha256] = {
                 'location': img_uri,
                 'jive_object': api_response,
-                'sha256': img_sha256
+                'local_path': src
             }
             logger.debug('Rewrite img src from "%s" to "%s"', src, img_uri)
             # set the src attribute to the Location
-            img['src'] = img_uri
+            img.set('src', img_uri)
         return root, images

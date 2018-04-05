@@ -38,7 +38,7 @@ Jason Antman <jason@jasonantman.com> <http://www.jasonantman.com>
 import os
 from datetime import datetime
 from urllib.parse import urljoin
-from unittest.mock import Mock, call, patch, DEFAULT
+from unittest.mock import Mock, call, patch, DEFAULT, mock_open
 
 from lxml import etree
 from lxml.html import builder as E
@@ -50,6 +50,7 @@ from jiveapi.version import VERSION, PROJECT_URL
 
 pbm = 'jiveapi.content'
 pb = '%s.JiveContent' % pbm
+sha256str = '9f862d5353358cb5993685c00f3e315496d26f5db2659e07e1665aa09896657e'
 
 
 class TestInit(object):
@@ -93,7 +94,7 @@ class ContentTester(object):
 
         self.mockapi = Mock(spec_set=JiveApi)
         self.mockapi.abs_url.side_effect = se_abs_url
-        self.cls = JiveContent(self.mockapi)
+        self.cls = JiveContent(self.mockapi, image_dir='/img/dir')
 
     def example_doc(self):
         return {
@@ -201,7 +202,7 @@ class TestUpdateHtmlDocument(ContentTester):
         assert mock_dfhd.mock_calls == [
             call(
                 'subj', 'body', tags=[], place_id=None, visibility=None,
-                inline_css=True, jiveize=True, handle_images=True
+                inline_css=True, jiveize=True, handle_images=True, images={}
             )
         ]
 
@@ -213,7 +214,7 @@ class TestUpdateHtmlDocument(ContentTester):
             res = self.cls.update_html_document(
                 '6789', 'subj', 'body', tags=['foo'], place_id='1234',
                 visibility='place', set_datetime=dt, inline_css=False,
-                jiveize=False, handle_images=False
+                jiveize=False, handle_images=False, images={'input': 'bar'}
             )
         assert res == {
             'entityType': 'docment',
@@ -231,14 +232,14 @@ class TestUpdateHtmlDocument(ContentTester):
             call(
                 'subj', 'body', tags=['foo'], place_id='1234',
                 visibility='place', inline_css=False, jiveize=False,
-                handle_images=False
+                handle_images=False, images={'input': 'bar'}
             )
         ]
 
 
 class TestDictForHtmlDocument(ContentTester):
 
-    def test_defaults(self):
+    def test_defaults_with_images(self):
         m_hte = Mock()
         m_ice = Mock()
         m_je = Mock()
@@ -256,7 +257,9 @@ class TestDictForHtmlDocument(ContentTester):
                 mocks['inline_css_etree'].return_value = m_ice
                 mocks['jiveize_etree'].return_value = m_je
                 mocks['_upload_images'].return_value = m_ui, {'images': 'foo'}
-                res = self.cls.dict_for_html_document('subj', 'body')
+                res = self.cls.dict_for_html_document(
+                    'subj', 'body', images={'input': 'images'}
+                )
         assert res == ({
             'type': 'document',
             'subject': 'subj',
@@ -272,7 +275,9 @@ class TestDictForHtmlDocument(ContentTester):
         assert mocks['html_to_etree'].mock_calls == [call('body')]
         assert mocks['inline_css_etree'].mock_calls == [call(m_hte)]
         assert mocks['jiveize_etree'].mock_calls == [call(m_ice)]
-        assert mocks['_upload_images'].mock_calls == [call(m_je)]
+        assert mocks['_upload_images'].mock_calls == [
+            call(m_je, {'input': 'images'})
+        ]
         assert mock_tostring.mock_calls == [call(m_ui)]
         assert self.mockapi.mock_calls == []
 
@@ -353,7 +358,7 @@ class TestDictForHtmlDocument(ContentTester):
         assert mocks['html_to_etree'].mock_calls == [call('body')]
         assert mocks['inline_css_etree'].mock_calls == [call(m_hte)]
         assert mocks['jiveize_etree'].mock_calls == []
-        assert mocks['_upload_images'].mock_calls == [call(m_ice)]
+        assert mocks['_upload_images'].mock_calls == [call(m_ice, {})]
         assert mock_tostring.mock_calls == [call(m_ui)]
         assert self.mockapi.mock_calls == []
 
@@ -393,8 +398,48 @@ class TestDictForHtmlDocument(ContentTester):
         assert mocks['html_to_etree'].mock_calls == [call('body')]
         assert mocks['inline_css_etree'].mock_calls == []
         assert mocks['jiveize_etree'].mock_calls == [call(m_hte)]
-        assert mocks['_upload_images'].mock_calls == [call(m_je)]
+        assert mocks['_upload_images'].mock_calls == [call(m_je, {})]
         assert mock_tostring.mock_calls == [call(m_ui)]
+        assert self.mockapi.mock_calls == []
+
+    def test_no_images(self):
+        m_hte = Mock()
+        m_ice = Mock()
+        m_je = Mock()
+        m_ui = Mock()
+        with patch.multiple(
+            pb,
+            html_to_etree=DEFAULT,
+            inline_css_etree=DEFAULT,
+            jiveize_etree=DEFAULT,
+            _upload_images=DEFAULT
+        ) as mocks:
+            with patch('%s.etree.tostring' % pbm) as mock_tostring:
+                mock_tostring.return_value = 'fixed_string'
+                mocks['html_to_etree'].return_value = m_hte
+                mocks['inline_css_etree'].return_value = m_ice
+                mocks['jiveize_etree'].return_value = m_je
+                mocks['_upload_images'].return_value = m_ui, {'images': 'foo'}
+                res = self.cls.dict_for_html_document(
+                    'subj', 'body', handle_images=False
+                )
+        assert res == ({
+            'type': 'document',
+            'subject': 'subj',
+            'content': {
+                'type': 'text/html',
+                'text': 'fixed_string'
+            },
+            'via': {
+                'displayName': 'Python jiveapi v%s' % VERSION,
+                'url': PROJECT_URL
+            }
+        }, {})
+        assert mocks['html_to_etree'].mock_calls == [call('body')]
+        assert mocks['inline_css_etree'].mock_calls == [call(m_hte)]
+        assert mocks['jiveize_etree'].mock_calls == [call(m_ice)]
+        assert mocks['_upload_images'].mock_calls == []
+        assert mock_tostring.mock_calls == [call(m_je)]
         assert self.mockapi.mock_calls == []
 
     def test_tags(self):
@@ -690,6 +735,163 @@ class TestIsLocalImage(object):
         ) is True
 
 
-class TestUploadImages(object):
+class TestLoadImageFromDisk(ContentTester):
 
-    pass
+    def test_rel_path(self):
+        m_sha256 = Mock()
+        m_sha256.hexdigest.return_value = sha256str
+        with patch('%s.imghdr.what' % pbm) as mock_what:
+            with patch('%s.hashlib.sha256' % pbm) as mock_sha256:
+                with patch(
+                    '%s.open' % pbm, mock_open(read_data=b'foo')
+                ) as m_open:
+                    mock_what.return_value = 'cType'
+                    mock_sha256.return_value = m_sha256
+                    res = self.cls._load_image_from_disk('foo/bar.png')
+        assert res == ('image/cType', b'foo', sha256str)
+        assert mock_what.mock_calls == [call(None, b'foo')]
+        assert mock_sha256.mock_calls == [
+            call(b'foo'), call().hexdigest()
+        ]
+        assert m_open.mock_calls == [
+            call('/img/dir/foo/bar.png', 'rb'),
+            call().__enter__(),
+            call().read(),
+            call().__exit__(None, None, None)
+        ]
+
+    def test_abs_path(self):
+        m_sha256 = Mock()
+        m_sha256.hexdigest.return_value = sha256str
+        with patch('%s.imghdr.what' % pbm) as mock_what:
+            with patch('%s.hashlib.sha256' % pbm) as mock_sha256:
+                with patch(
+                    '%s.open' % pbm, mock_open(read_data=b'foo')
+                ) as m_open:
+                    mock_what.return_value = 'cType'
+                    mock_sha256.return_value = m_sha256
+                    res = self.cls._load_image_from_disk('/foo/bar.png')
+        assert res == ('image/cType', b'foo', sha256str)
+        assert mock_what.mock_calls == [call(None, b'foo')]
+        assert mock_sha256.mock_calls == [
+            call(b'foo'), call().hexdigest()
+        ]
+        assert m_open.mock_calls == [
+            call('/foo/bar.png', 'rb'),
+            call().__enter__(),
+            call().read(),
+            call().__exit__(None, None, None)
+        ]
+
+
+class TestUploadImages(ContentTester):
+
+    def test_remote_img(self):
+        mock_html = E.HTML(
+            E.HEAD(E.TITLE('Some Title')),
+            E.BODY(
+                E.P('Hello\nGoodbye'),
+                E.IMG(src='http://example.com/local/img.png')
+            )
+        )
+        root = mock_html.getroottree()
+        self.mockapi.upload_image.return_value = (None, None)
+        with patch('%s._is_local_image' % pb) as mock_ili:
+            with patch('%s._load_image_from_disk' % pb) as mock_lifd:
+                mock_ili.return_value = False
+                mock_lifd.return_value = (None, None, None)
+                newroot, res = self.cls._upload_images(
+                    root, images={'foo': {'bar': 'baz'}}
+                )
+        assert newroot == root
+        imgs = newroot.xpath('//img')
+        assert len(imgs) == 1
+        assert imgs[0].get('src') == 'http://example.com/local/img.png'
+        assert res == {'foo': {'bar': 'baz'}}
+        assert mock_ili.mock_calls == [
+            call('http://example.com/local/img.png')
+        ]
+        assert mock_lifd.mock_calls == []
+        assert self.mockapi.mock_calls == []
+
+    def test_local_new_img(self):
+        mock_html = E.HTML(
+            E.HEAD(E.TITLE('Some Title')),
+            E.BODY(
+                E.P('Hello\nGoodbye'),
+                E.IMG(src='local/img.png')
+            )
+        )
+        root = mock_html.getroottree()
+        self.mockapi.upload_image.return_value = (
+            'http://jive.example.com/myimage',
+            {'id': '123abc', 'jive': 'imageObject'}
+        )
+        with patch('%s._is_local_image' % pb) as mock_ili:
+            with patch('%s._load_image_from_disk' % pb) as mock_lifd:
+                mock_ili.return_value = True
+                mock_lifd.return_value = (
+                    'image/png', b'imgdata', sha256str
+                )
+                newroot, res = self.cls._upload_images(root)
+        imgs = newroot.xpath('//img')
+        assert len(imgs) == 1
+        assert imgs[0].get('src') == 'http://jive.example.com/myimage'
+        assert res == {
+            sha256str: {
+                'location': 'http://jive.example.com/myimage',
+                'jive_object': {'id': '123abc', 'jive': 'imageObject'},
+                'local_path': 'local/img.png'
+            }
+        }
+        assert mock_ili.mock_calls == [call('local/img.png')]
+        assert mock_lifd.mock_calls == [call('local/img.png')]
+        assert self.mockapi.mock_calls == [
+            call.upload_image(b'imgdata', 'img.png', 'image/png')
+        ]
+
+    def test_local_existing_img(self):
+        mock_html = E.HTML(
+            E.HEAD(E.TITLE('Some Title')),
+            E.BODY(
+                E.P('Hello\nGoodbye'),
+                E.IMG(src='local/img.png')
+            )
+        )
+        root = mock_html.getroottree()
+        self.mockapi.upload_image.return_value = (None, None)
+        with patch('%s._is_local_image' % pb) as mock_ili:
+            with patch('%s._load_image_from_disk' % pb) as mock_lifd:
+                mock_ili.return_value = True
+                mock_lifd.return_value = (
+                    'image/png', b'imgdata', sha256str
+                )
+                newroot, res = self.cls._upload_images(
+                    root,
+                    images={
+                        sha256str: {
+                            'location': 'http://jive.example.com/existing',
+                            'jive_object': {
+                                'id': '123456',
+                                'foo': 'bar'
+                            },
+                            'local_path': 'my/image/path.png'
+                        }
+                    }
+                )
+        imgs = newroot.xpath('//img')
+        assert len(imgs) == 1
+        assert imgs[0].get('src') == 'http://jive.example.com/existing'
+        assert res == {
+            sha256str: {
+                'location': 'http://jive.example.com/existing',
+                'jive_object': {
+                    'id': '123456',
+                    'foo': 'bar'
+                },
+                'local_path': 'my/image/path.png'
+            }
+        }
+        assert mock_ili.mock_calls == [call('local/img.png')]
+        assert mock_lifd.mock_calls == [call('local/img.png')]
+        assert self.mockapi.mock_calls == []
