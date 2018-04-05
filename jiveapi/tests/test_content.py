@@ -145,7 +145,8 @@ class TestCreateHtmlDocument(ContentTester):
         assert mock_dfhd.mock_calls == [
             call(
                 'subj', 'body', tags=[], place_id=None, visibility=None,
-                inline_css=True, jiveize=True, handle_images=True
+                inline_css=True, jiveize=True, handle_images=True,
+                editable=False
             )
         ]
 
@@ -157,7 +158,7 @@ class TestCreateHtmlDocument(ContentTester):
             res = self.cls.create_html_document(
                 'subj', 'body', tags=['foo'], place_id='1234',
                 visibility='place', set_datetime=dt, inline_css=False,
-                jiveize=False, handle_images=False
+                jiveize=False, handle_images=False, editable=True
             )
         assert res == {
             'entityType': 'docment',
@@ -175,7 +176,7 @@ class TestCreateHtmlDocument(ContentTester):
             call(
                 'subj', 'body', tags=['foo'], place_id='1234',
                 visibility='place', inline_css=False, jiveize=False,
-                handle_images=False
+                handle_images=False, editable=True
             )
         ]
 
@@ -202,7 +203,8 @@ class TestUpdateHtmlDocument(ContentTester):
         assert mock_dfhd.mock_calls == [
             call(
                 'subj', 'body', tags=[], place_id=None, visibility=None,
-                inline_css=True, jiveize=True, handle_images=True, images={}
+                inline_css=True, jiveize=True, handle_images=True,
+                editable=False, images={}
             )
         ]
 
@@ -214,7 +216,8 @@ class TestUpdateHtmlDocument(ContentTester):
             res = self.cls.update_html_document(
                 '6789', 'subj', 'body', tags=['foo'], place_id='1234',
                 visibility='place', set_datetime=dt, inline_css=False,
-                jiveize=False, handle_images=False, images={'input': 'bar'}
+                jiveize=False, handle_images=False, images={'input': 'bar'},
+                editable=True
             )
         assert res == {
             'entityType': 'docment',
@@ -232,7 +235,7 @@ class TestUpdateHtmlDocument(ContentTester):
             call(
                 'subj', 'body', tags=['foo'], place_id='1234',
                 visibility='place', inline_css=False, jiveize=False,
-                handle_images=False, images={'input': 'bar'}
+                handle_images=False, images={'input': 'bar'}, editable=True
             )
         ]
 
@@ -281,7 +284,7 @@ class TestDictForHtmlDocument(ContentTester):
         assert mock_tostring.mock_calls == [call(m_ui)]
         assert self.mockapi.mock_calls == []
 
-    def test_no_modify(self):
+    def test_no_modify_editable(self):
         m_hte = Mock()
         m_ice = Mock()
         m_je = Mock()
@@ -301,14 +304,15 @@ class TestDictForHtmlDocument(ContentTester):
                 mocks['_upload_images'].return_value = m_ui, {'images': 'foo'}
                 res = self.cls.dict_for_html_document(
                     'subj', 'body', jiveize=False, inline_css=False,
-                    handle_images=False
+                    handle_images=False, editable=True
                 )
         assert res == ({
             'type': 'document',
             'subject': 'subj',
             'content': {
                 'type': 'text/html',
-                'text': 'body'
+                'text': 'body',
+                'editable': True
             },
             'via': {
                 'displayName': 'Python jiveapi v%s' % VERSION,

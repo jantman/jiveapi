@@ -139,7 +139,8 @@ class JiveContent(object):
 
     def create_html_document(
         self, subject, html, tags=[], place_id=None, visibility=None,
-        set_datetime=None, inline_css=True, jiveize=True, handle_images=True
+        set_datetime=None, inline_css=True, jiveize=True, handle_images=True,
+        editable=False
     ):
         """
         Create a HTML `Document <https://developers.jivesoftware.com/api/v3/clou
@@ -187,6 +188,9 @@ class JiveContent(object):
         :param handle_images: if True, pass input HTML through
           :py:meth:`~._upload_images` to upload all local images to Jive.
         :type handle_images: bool
+        :param editable: set to True if the content HTML includes Jive RTE
+          Macros. Otherwise, they will not be processed by Jive.
+        :type editable: bool
         :return: 2-tuple of (``dict`` representation of the created Document
           from the Jive API, ``dict`` images data to persist for updates)
         :rtype: tuple
@@ -195,7 +199,8 @@ class JiveContent(object):
         logger.debug('Generating API call dict for content')
         content, images = self.dict_for_html_document(
             subject, html, tags=tags, place_id=place_id, visibility=visibility,
-            inline_css=inline_css, jiveize=jiveize, handle_images=handle_images
+            inline_css=inline_css, jiveize=jiveize, handle_images=handle_images,
+            editable=editable
         )
         logger.debug('API call dict ready to send')
         if set_datetime is not None:
@@ -215,7 +220,7 @@ class JiveContent(object):
     def update_html_document(
         self, content_id, subject, html, tags=[], place_id=None,
         visibility=None, set_datetime=None, inline_css=True, jiveize=True,
-        handle_images=True, images={}
+        handle_images=True, editable=False, images={}
     ):
         """
         Update a HTML `Document <https://developers.jivesoftware.com/api/v3/clou
@@ -265,6 +270,9 @@ class JiveContent(object):
         :param handle_images: if True, pass input HTML through
           :py:meth:`~._upload_images` to upload all local images to Jive.
         :type handle_images: bool
+        :param editable: set to True if the content HTML includes Jive RTE
+          Macros. Otherwise, they will not be processed by Jive.
+        :type editable: bool
         :param images: a dict of information about images that have been already
           uploaded for this Document. This parameter should be the value of the
           ``images`` key from the return value of this method or of
@@ -279,7 +287,7 @@ class JiveContent(object):
         content, images = self.dict_for_html_document(
             subject, html, tags=tags, place_id=place_id, visibility=visibility,
             inline_css=inline_css, jiveize=jiveize, handle_images=handle_images,
-            images=images
+            images=images, editable=editable
         )
         logger.debug('API call dict ready to send')
         if set_datetime is not None:
@@ -300,7 +308,8 @@ class JiveContent(object):
 
     def dict_for_html_document(
         self, subject, html, tags=[], place_id=None, visibility=None,
-        inline_css=True, jiveize=True, handle_images=True, images={}
+        inline_css=True, jiveize=True, handle_images=True, editable=False,
+        images={}
     ):
         """
         Generate the API (dict/JSON) representation of a HTML
@@ -346,6 +355,9 @@ class JiveContent(object):
         :param handle_images: if True, pass input HTML through
           :py:meth:`~._upload_images` to upload all local images to Jive.
         :type handle_images: bool
+        :param editable: set to True if the content HTML includes Jive RTE
+          Macros. Otherwise, they will not be processed by Jive.
+        :type editable: bool
         :param images: a dict of information about images that have been already
           uploaded for this Document. This parameter should be the value of the
           ``images`` key from the return value of this method (or of
@@ -392,6 +404,8 @@ class JiveContent(object):
             )
         if visibility is not None:
             content['visibility'] = visibility
+        if editable:
+            content['content']['editable'] = True
         return content, images
 
     @staticmethod
