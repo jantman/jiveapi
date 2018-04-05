@@ -466,7 +466,7 @@ class JiveContent(object):
     def jiveize_etree(root, no_sourcecode_style=True):
         """
         Given a lxml etree root, perform some formatting and style fixes to get
-        it to render correctly in the Jive UI:
+        each element in it to render correctly in the Jive UI:
 
         * If ``no_sourcecode_style`` is True, remove the ``style`` attribute
           from any ``div`` elements with a class of ``sourceCode``.
@@ -474,6 +474,9 @@ class JiveContent(object):
           via :py:func:`~.newline_to_br`.
         * For any HTML tags that are keys of :py:data:`~.TAGSTYLES`, set their
           style attribute according to :py:data:`~.TAGSTYLES`.
+
+        Elements which have a "jivemacro" attribute present will not be
+        modified.
 
         :param root: root node of etree to jive-ize
         :type root: ``lxml.etree._Element``
@@ -489,10 +492,17 @@ class JiveContent(object):
                 del code_div.attrib['style']
         # prefix all newlines in <pre> tags with ``<br />``
         for pre in root.xpath('//pre'):
+            if 'jivemacro' in pre.attrib:
+                continue
             pre.getparent().replace(pre, newline_to_br(pre))
         # ok, now apply some general Fuel/Jive style fixes...
         for element in root.iter():
             if element.tag not in TAGSTYLES.keys():
+                continue
+            if (
+                'jivemacro' in element.attrib or
+                'jivemacro' in element.getparent().attrib
+            ):
                 continue
             element.attrib['style'] = TAGSTYLES[element.tag]
         return root
