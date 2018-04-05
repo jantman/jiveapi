@@ -295,7 +295,7 @@ intersphinx_mapping = {
     'requests': ('http://docs.python-requests.org/en/master/', None)
 }
 
-autoclass_content = 'class'
+autoclass_content = 'both'
 autodoc_default_flags = ['members', 'undoc-members', 'private-members', 'show-inheritance']
 
 linkcheck_ignore = [

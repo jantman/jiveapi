@@ -35,5 +35,10 @@ Jason Antman <jason@jasonantman.com> <http://www.jasonantman.com>
 ##################################################################################
 """
 
+#: Constant to hold this version of the package, used both in ``setup.py`` and
+#: anywhere in the code that reports the version.
 VERSION = '0.1.0'
+
+#: Constant to hold the project URL, used both in ``setup.py`` and anywhere in
+#: the code that reports the version.
 PROJECT_URL = 'https://github.com/jantman/jiveapi'

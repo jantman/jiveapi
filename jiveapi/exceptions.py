@@ -37,8 +37,17 @@ Jason Antman <jason@jasonantman.com> <http://www.jasonantman.com>
 
 
 class RequestFailedException(RuntimeError):
+    """
+    Exception raised when a Jive server response contains a HTTP status code
+    that indicates an error, or is not the expected status code for the
+    request.
+    """
 
     def __init__(self, response):
+        """
+        :param response: the response that generated this exception
+        :type response: :py:class:`requests.Response`
+        """
         self.error_message = None
         message = self._message_for_response(response)
         super(RequestFailedException, self).__init__(message)
@@ -66,6 +75,11 @@ class RequestFailedException(RuntimeError):
 
 
 class ContentConflictException(RequestFailedException):
+    """
+    Exception raised when the Jive server response indicates that there is
+    a conflict between the submitted content and content already in the system,
+    such as two content objects of the same type with the same name.
+    """
 
     def _message_for_response(self, resp):
         desc = 'The new entity would conflict with system restrictions ' \

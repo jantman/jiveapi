@@ -42,6 +42,13 @@ logger = logging.getLogger(__name__)
 
 
 def prettyjson(j):
+    """
+    Return pretty-printed JSON.
+
+    :param j: object to JSON serialize
+    :return: pretty-printed JSON serialized version of j
+    :rtype: str
+    """
     return json.dumps(j, sort_keys=True, indent=4, separators=(',', ': '))
 
 

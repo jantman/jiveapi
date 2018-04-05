@@ -51,11 +51,13 @@ TIME_FORMAT = '%Y-%m-%dT%H:%M:%S.000%z'
 
 
 class JiveApi(object):
+    """
+    Low-level client for the Jive API, with methods mapping directly to the
+    Jive API endpoints.
+    """
 
     def __init__(self, base_url, username, password):
         """
-        Initialize JiveApi client.
-
         :param base_url: Base URL to the Jive API. This should be the scheme,
           hostname, and optional port ending with a path of ``/api/`` (i.e.
           ``https://sandbox.jiveon.com/api/``).
@@ -241,7 +243,8 @@ class JiveApi(object):
                 raise ContentConflictException(ex.response)
             raise
         logger.debug(
-            'Created content with ID %s', res.get('contentID', 'unknown')
+            'Created content with ID %s: %s', res.get('contentID', 'unknown'),
+            res
         )
         return res
 
@@ -285,7 +288,8 @@ class JiveApi(object):
                 raise ContentConflictException(ex.response)
             raise
         logger.debug(
-            'Updated content with ID %s', res.get('contentID', 'unknown')
+            'Updated content with ID %s: %s', res.get('contentID', 'unknown'),
+            res
         )
         return res
 
