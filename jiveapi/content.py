@@ -314,7 +314,7 @@ class JiveContent(object):
         :param images: a dict of information about images that have been already
           uploaded for this Document. This parameter should be the value of the
           ``images`` key from the return value of this method or of
-          :py:meth:`~.create_html_content`.
+          :py:meth:`~.create_html_document`.
         :type images: dict
         :return: 2-tuple of (``dict`` representation of the updated Document
           from the Jive API, ``dict`` images data to persist for updates)
@@ -418,7 +418,8 @@ class JiveContent(object):
         :param images: a dict of information about images that have been already
           uploaded for this Document. This parameter should be the value of the
           ``images`` key from the return value of this method (or of
-          :py:meth:`~.create_html_content` or :py:meth:`~.update_html_content`).
+          :py:meth:`~.create_html_document` or
+          :py:meth:`~.update_html_document`).
         :type images: dict
         :return: 2-tuple of (``dict`` representation of the desired Document
           ready to pass to the Jive API, ``dict`` images data to persist for
