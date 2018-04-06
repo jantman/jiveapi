@@ -34,7 +34,7 @@ Supported Actions
   * Option to modify HTML to insert Jive-style information/notice boxes as header and footer, such as information reminding users not to edit the document directly on Jive and giving links to the canonical source, commit, and build that last generated the content.
   * Option to add a Jive Table of Contents macro to the beginning of the content.
 
-* jiveapi also includes a basic `Sphinx <http://www.sphinx-doc.org>`_ theme (called ``jiveapi``) optimized for building single-page HTML for uploading to Jive.
+* jiveapi also includes a basic `Sphinx <http://www.sphinx-doc.org>`_ theme (called ``jiveapi``) and Builder (also called ``jiveapi``) optimized for building single-page HTML for uploading to Jive.
 
 Requirements
 ------------

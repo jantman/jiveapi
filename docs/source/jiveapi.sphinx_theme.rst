@@ -6,3 +6,10 @@ jiveapi.sphinx\_theme package
     :undoc-members:
     :show-inheritance:
 
+Submodules
+----------
+
+.. toctree::
+
+   jiveapi.sphinx_theme.builder
+

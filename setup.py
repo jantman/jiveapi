@@ -88,6 +88,9 @@ setup(
     entry_points={
         'sphinx.html_themes': [
             'jiveapi = jiveapi.sphinx_theme'
+        ],
+        'sphinx.builders': [
+            'jiveapi = jiveapi.sphinx_theme.builder'
         ]
     }
 )
