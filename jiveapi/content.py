@@ -140,7 +140,7 @@ class JiveContent(object):
     def create_html_document(
         self, subject, html, tags=[], place_id=None, visibility=None,
         set_datetime=None, inline_css=True, jiveize=True, handle_images=True,
-        editable=False
+        editable=False, toc=False, header_alert=None, footer_alert=None
     ):
         """
         Create a HTML `Document <https://developers.jivesoftware.com/api/v3/clou
@@ -191,6 +191,24 @@ class JiveContent(object):
         :param editable: set to True if the content HTML includes Jive RTE
           Macros. Otherwise, they will not be processed by Jive.
         :type editable: bool
+        :param toc: If True, insert the Jive RTE "Table of Contents" macro at
+          the beginning of the html. Setting this to True forces ``editable`` to
+          be True.
+        :type toc: bool
+        :param header_alert: If not None, insert a Jive RTE "Alert" macro at the
+          beginning of the html (after the Table of Contents, if present).
+          Setting this to forces ``editable`` to be True. The value of this
+          parameter can either be a string which will be used as the content of
+          a "info" alert box, or a 2-tuple of the string alert box type (one of
+          "info", "success", "warning" or "danger") and the string content.
+        :type header_alert: ``str`` or ``tuple``
+        :param footer_alert: If not None, insert a Jive RTE "Alert" macro at the
+          end of the html. Setting this forces ``editable`` to be True. The
+          value of this parameter can either be a string which will be used as
+          the content of a "info" alert box, or a 2-tuple of the string alert
+          box type (one of "info", "success", "warning" or "danger") and the
+          string content.
+        :type footer_alert: ``str`` or ``tuple``
         :return: 2-tuple of (``dict`` representation of the created Document
           from the Jive API, ``dict`` images data to persist for updates)
         :rtype: tuple
@@ -200,7 +218,8 @@ class JiveContent(object):
         content, images = self.dict_for_html_document(
             subject, html, tags=tags, place_id=place_id, visibility=visibility,
             inline_css=inline_css, jiveize=jiveize, handle_images=handle_images,
-            editable=editable
+            editable=editable, toc=toc, header_alert=header_alert,
+            footer_alert=footer_alert
         )
         logger.debug('API call dict ready to send')
         if set_datetime is not None:
@@ -220,7 +239,8 @@ class JiveContent(object):
     def update_html_document(
         self, content_id, subject, html, tags=[], place_id=None,
         visibility=None, set_datetime=None, inline_css=True, jiveize=True,
-        handle_images=True, editable=False, images={}
+        handle_images=True, editable=False, toc=False, header_alert=None,
+        footer_alert=None, images={}
     ):
         """
         Update a HTML `Document <https://developers.jivesoftware.com/api/v3/clou
@@ -273,6 +293,24 @@ class JiveContent(object):
         :param editable: set to True if the content HTML includes Jive RTE
           Macros. Otherwise, they will not be processed by Jive.
         :type editable: bool
+        :param toc: If True, insert the Jive RTE "Table of Contents" macro at
+          the beginning of the html. Setting this to True forces ``editable`` to
+          be True.
+        :type toc: bool
+        :param header_alert: If not None, insert a Jive RTE "Alert" macro at the
+          beginning of the html (after the Table of Contents, if present).
+          Setting this to forces ``editable`` to be True. The value of this
+          parameter can either be a string which will be used as the content of
+          a "info" alert box, or a 2-tuple of the string alert box type (one of
+          "info", "success", "warning" or "danger") and the string content.
+        :type header_alert: ``str`` or ``tuple``
+        :param footer_alert: If not None, insert a Jive RTE "Alert" macro at the
+          end of the html. Setting this forces ``editable`` to be True. The
+          value of this parameter can either be a string which will be used as
+          the content of a "info" alert box, or a 2-tuple of the string alert
+          box type (one of "info", "success", "warning" or "danger") and the
+          string content.
+        :type footer_alert: ``str`` or ``tuple``
         :param images: a dict of information about images that have been already
           uploaded for this Document. This parameter should be the value of the
           ``images`` key from the return value of this method or of
@@ -287,7 +325,8 @@ class JiveContent(object):
         content, images = self.dict_for_html_document(
             subject, html, tags=tags, place_id=place_id, visibility=visibility,
             inline_css=inline_css, jiveize=jiveize, handle_images=handle_images,
-            images=images, editable=editable
+            images=images, editable=editable, toc=toc,
+            header_alert=header_alert, footer_alert=footer_alert
         )
         logger.debug('API call dict ready to send')
         if set_datetime is not None:
@@ -309,7 +348,7 @@ class JiveContent(object):
     def dict_for_html_document(
         self, subject, html, tags=[], place_id=None, visibility=None,
         inline_css=True, jiveize=True, handle_images=True, editable=False,
-        images={}
+        toc=False, header_alert=None, footer_alert=None, images={}
     ):
         """
         Generate the API (dict/JSON) representation of a HTML
@@ -358,6 +397,24 @@ class JiveContent(object):
         :param editable: set to True if the content HTML includes Jive RTE
           Macros. Otherwise, they will not be processed by Jive.
         :type editable: bool
+        :param toc: If True, insert the Jive RTE "Table of Contents" macro at
+          the beginning of the html. Setting this to True forces ``editable`` to
+          be True.
+        :type toc: bool
+        :param header_alert: If not None, insert a Jive RTE "Alert" macro at the
+          beginning of the html (after the Table of Contents, if present).
+          Setting this to forces ``editable`` to be True. The value of this
+          parameter can either be a string which will be used as the content of
+          a "info" alert box, or a 2-tuple of the string alert box type (one of
+          "info", "success", "warning" or "danger") and the string content.
+        :type header_alert: ``str`` or ``tuple``
+        :param footer_alert: If not None, insert a Jive RTE "Alert" macro at the
+          end of the html. Setting this forces ``editable`` to be True. The
+          value of this parameter can either be a string which will be used as
+          the content of a "info" alert box, or a 2-tuple of the string alert
+          box type (one of "info", "success", "warning" or "danger") and the
+          string content.
+        :type footer_alert: ``str`` or ``tuple``
         :param images: a dict of information about images that have been already
           uploaded for this Document. This parameter should be the value of the
           ``images`` key from the return value of this method (or of
@@ -368,7 +425,10 @@ class JiveContent(object):
           updates)
         :rtype: tuple
         """
-        if jiveize or inline_css or handle_images:
+        if (
+            jiveize or inline_css or handle_images or toc or
+            header_alert is not None or footer_alert is not None
+        ):
             logger.debug('Converting input HTML to etree')
             doc = JiveContent.html_to_etree(html)
             if inline_css:
@@ -377,6 +437,23 @@ class JiveContent(object):
             if jiveize:
                 logger.debug('Passing input HTML through jiveize_etree()')
                 doc = JiveContent.jiveize_etree(doc)
+            if header_alert is not None:
+                logger.debug(
+                    'Adding Jive RTM "Alert" macro to header: %s', header_alert
+                )
+                doc = JiveContent.etree_add_alert(
+                    doc, header_alert, header=True
+                )
+            if footer_alert is not None:
+                logger.debug(
+                    'Adding Jive RTM "Alert" macro to footer: %s', footer_alert
+                )
+                doc = JiveContent.etree_add_alert(
+                    doc, footer_alert, header=False
+                )
+            if toc:
+                logger.debug('Adding Jive RTM "Table of Contents" macro')
+                doc = JiveContent.etree_add_toc(doc)
             if handle_images:
                 logger.debug('Passing input HTML through _upload_images()')
                 doc, images = self._upload_images(doc, images)
@@ -404,7 +481,10 @@ class JiveContent(object):
             )
         if visibility is not None:
             content['visibility'] = visibility
-        if editable:
+        if (
+            editable or header_alert is not None or
+            footer_alert is not None or toc
+        ):
             content['content']['editable'] = True
         return content, images
 
@@ -519,6 +599,74 @@ class JiveContent(object):
             ):
                 continue
             element.attrib['style'] = TAGSTYLES[element.tag]
+        return root
+
+    @staticmethod
+    def etree_add_toc(root):
+        """
+        Return the provided Element with a Jive RTE "Table of Contents" macro
+        prepended to the body.
+
+        :param root: root node of etree to add Table of Contents macro to
+        :type root: ``lxml.etree._Element``
+        :return: root node of etree containing modified HTML
+        :rtype: ``lxml.etree._Element`` or ``lxml.etree._ElementTree``
+        """
+        body = root.find('body')
+        p = etree.Element(
+            'p', style='color: #24292e; margin-top: 0; margin-bottom: 16px;'
+        )
+        img_args = {
+            'alt': 'Table of contents',
+            'class': 'jive_macro jive_macro_toc',
+            'src': 'https://assets2.jiveon.com/core/2016.3.9.0.b96715f/images/'
+                   'tiny_mce4/themes/advanced/img/toc.png',
+            'jivemacro': 'toc'
+        }
+        etree.SubElement(p, 'img', **img_args)
+        body.insert(0, p)
+        return root
+
+    @staticmethod
+    def etree_add_alert(root, alert_spec, header=True):
+        """
+        Add an alert macro to the specified tree, either at the beginning or end
+        of the body.
+
+        :param root: root node of etree to add Alert macro to
+        :type root: ``lxml.etree._Element``
+        :param alert_spec: The value of this parameter can either be a string
+          which will be used as the content of a "info" alert box, or a 2-tuple
+          of the string alert box type (one of "info", "success", "warning" or
+          "danger") and the string content.
+        :type alert_spec: ``str`` or ``tuple``
+        :param header: add to beginning of body element (header) if True,
+          otherwise add to end of body element (footer)
+        :type header: bool
+        :return: root node of etree containing modified HTML
+        :rtype: ``lxml.etree._Element`` or ``lxml.etree._ElementTree``
+        """
+        if isinstance(alert_spec, type(())):
+            macro_type = alert_spec[0]
+            content = alert_spec[1]
+        else:
+            macro_type = 'info'
+            content = alert_spec
+        body = root.find('body')
+        elem_kwargs = {
+            'class': 'jive_text_macro jive_macro_alert',
+            'jivemacro': 'alert',
+            '__default_attr': macro_type,
+            '_alert': macro_type,
+            '_modifiedtitle': 'true'
+        }
+        pre = etree.Element('pre', **elem_kwargs)
+        p = etree.SubElement(pre, 'p')
+        p.text = content
+        if header:
+            body.insert(0, pre)
+        else:
+            body.append(pre)
         return root
 
     @staticmethod

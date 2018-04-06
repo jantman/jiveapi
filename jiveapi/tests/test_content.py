@@ -148,7 +148,7 @@ class TestCreateHtmlDocument(ContentTester):
             call(
                 'subj', 'body', tags=[], place_id=None, visibility=None,
                 inline_css=True, jiveize=True, handle_images=True,
-                editable=False
+                editable=False, toc=False, header_alert=None, footer_alert=None
             )
         ]
 
@@ -160,7 +160,9 @@ class TestCreateHtmlDocument(ContentTester):
             res = self.cls.create_html_document(
                 'subj', 'body', tags=['foo'], place_id='1234',
                 visibility='place', set_datetime=dt, inline_css=False,
-                jiveize=False, handle_images=False, editable=True
+                jiveize=False, handle_images=False, editable=True, toc=True,
+                header_alert='headerAlert',
+                footer_alert=('warning', 'warnFooter')
             )
         assert res == {
             'entityType': 'docment',
@@ -178,7 +180,9 @@ class TestCreateHtmlDocument(ContentTester):
             call(
                 'subj', 'body', tags=['foo'], place_id='1234',
                 visibility='place', inline_css=False, jiveize=False,
-                handle_images=False, editable=True
+                handle_images=False, editable=True, toc=True,
+                header_alert='headerAlert',
+                footer_alert=('warning', 'warnFooter')
             )
         ]
 
@@ -206,7 +210,8 @@ class TestUpdateHtmlDocument(ContentTester):
             call(
                 'subj', 'body', tags=[], place_id=None, visibility=None,
                 inline_css=True, jiveize=True, handle_images=True,
-                editable=False, images={}
+                editable=False, images={}, toc=False, header_alert=None,
+                footer_alert=None
             )
         ]
 
@@ -219,7 +224,8 @@ class TestUpdateHtmlDocument(ContentTester):
                 '6789', 'subj', 'body', tags=['foo'], place_id='1234',
                 visibility='place', set_datetime=dt, inline_css=False,
                 jiveize=False, handle_images=False, images={'input': 'bar'},
-                editable=True
+                editable=True, toc=True, header_alert='headerAlert',
+                footer_alert=('warning', 'warnFooter')
             )
         assert res == {
             'entityType': 'docment',
@@ -237,7 +243,9 @@ class TestUpdateHtmlDocument(ContentTester):
             call(
                 'subj', 'body', tags=['foo'], place_id='1234',
                 visibility='place', inline_css=False, jiveize=False,
-                handle_images=False, images={'input': 'bar'}, editable=True
+                handle_images=False, images={'input': 'bar'}, editable=True,
+                toc=True, header_alert='headerAlert',
+                footer_alert=('warning', 'warnFooter')
             )
         ]
 
@@ -249,18 +257,24 @@ class TestDictForHtmlDocument(ContentTester):
         m_ice = Mock()
         m_je = Mock()
         m_ui = Mock()
+        m_eat = Mock()
+        m_eaa = Mock()
         with patch.multiple(
             pb,
             html_to_etree=DEFAULT,
             inline_css_etree=DEFAULT,
             jiveize_etree=DEFAULT,
-            _upload_images=DEFAULT
+            _upload_images=DEFAULT,
+            etree_add_toc=DEFAULT,
+            etree_add_alert=DEFAULT
         ) as mocks:
             with patch('%s.etree.tostring' % pbm) as mock_tostring:
                 mock_tostring.return_value = 'fixed_string'
                 mocks['html_to_etree'].return_value = m_hte
                 mocks['inline_css_etree'].return_value = m_ice
                 mocks['jiveize_etree'].return_value = m_je
+                mocks['etree_add_toc'].return_value = m_eat
+                mocks['etree_add_alert'].return_value = m_eaa
                 mocks['_upload_images'].return_value = m_ui, {'images': 'foo'}
                 res = self.cls.dict_for_html_document(
                     'subj', 'body', images={'input': 'images'}
@@ -280,6 +294,8 @@ class TestDictForHtmlDocument(ContentTester):
         assert mocks['html_to_etree'].mock_calls == [call('body')]
         assert mocks['inline_css_etree'].mock_calls == [call(m_hte)]
         assert mocks['jiveize_etree'].mock_calls == [call(m_ice)]
+        assert mocks['etree_add_toc'].mock_calls == []
+        assert mocks['etree_add_alert'].mock_calls == []
         assert mocks['_upload_images'].mock_calls == [
             call(m_je, {'input': 'images'})
         ]
@@ -291,18 +307,24 @@ class TestDictForHtmlDocument(ContentTester):
         m_ice = Mock()
         m_je = Mock()
         m_ui = Mock()
+        m_eat = Mock()
+        m_eaa = Mock()
         with patch.multiple(
             pb,
             html_to_etree=DEFAULT,
             inline_css_etree=DEFAULT,
             jiveize_etree=DEFAULT,
-            _upload_images=DEFAULT
+            _upload_images=DEFAULT,
+            etree_add_toc=DEFAULT,
+            etree_add_alert=DEFAULT
         ) as mocks:
             with patch('%s.etree.tostring' % pbm) as mock_tostring:
                 mock_tostring.return_value = 'fixed_string'
                 mocks['html_to_etree'].return_value = m_hte
                 mocks['inline_css_etree'].return_value = m_ice
                 mocks['jiveize_etree'].return_value = m_je
+                mocks['etree_add_toc'].return_value = m_eat
+                mocks['etree_add_alert'].return_value = m_eaa
                 mocks['_upload_images'].return_value = m_ui, {'images': 'foo'}
                 res = self.cls.dict_for_html_document(
                     'subj', 'body', jiveize=False, inline_css=False,
@@ -324,8 +346,283 @@ class TestDictForHtmlDocument(ContentTester):
         assert mocks['html_to_etree'].mock_calls == []
         assert mocks['inline_css_etree'].mock_calls == []
         assert mocks['jiveize_etree'].mock_calls == []
+        assert mocks['etree_add_toc'].mock_calls == []
+        assert mocks['etree_add_alert'].mock_calls == []
         assert mocks['_upload_images'].mock_calls == []
         assert mock_tostring.mock_calls == []
+        assert self.mockapi.mock_calls == []
+
+    def test_toc(self):
+        m_hte = Mock()
+        m_ice = Mock()
+        m_je = Mock()
+        m_ui = Mock()
+        m_eat = Mock()
+        m_eaa = Mock()
+        with patch.multiple(
+            pb,
+            html_to_etree=DEFAULT,
+            inline_css_etree=DEFAULT,
+            jiveize_etree=DEFAULT,
+            _upload_images=DEFAULT,
+            etree_add_toc=DEFAULT,
+            etree_add_alert=DEFAULT
+        ) as mocks:
+            with patch('%s.etree.tostring' % pbm) as mock_tostring:
+                mock_tostring.return_value = 'fixed_string'
+                mocks['html_to_etree'].return_value = m_hte
+                mocks['inline_css_etree'].return_value = m_ice
+                mocks['jiveize_etree'].return_value = m_je
+                mocks['etree_add_toc'].return_value = m_eat
+                mocks['etree_add_alert'].return_value = m_eaa
+                mocks['_upload_images'].return_value = m_ui, {'images': 'foo'}
+                res = self.cls.dict_for_html_document(
+                    'subj', 'body', images={'input': 'images'}, toc=True
+                )
+        assert res == ({
+            'type': 'document',
+            'subject': 'subj',
+            'content': {
+                'type': 'text/html',
+                'text': 'fixed_string',
+                'editable': True
+            },
+            'via': {
+                'displayName': 'Python jiveapi v%s' % VERSION,
+                'url': PROJECT_URL
+            }
+        }, {'images': 'foo'})
+        assert mocks['html_to_etree'].mock_calls == [call('body')]
+        assert mocks['inline_css_etree'].mock_calls == [call(m_hte)]
+        assert mocks['jiveize_etree'].mock_calls == [call(m_ice)]
+        assert mocks['etree_add_toc'].mock_calls == [call(m_je)]
+        assert mocks['etree_add_alert'].mock_calls == []
+        assert mocks['_upload_images'].mock_calls == [
+            call(m_eat, {'input': 'images'})
+        ]
+        assert mock_tostring.mock_calls == [call(m_ui)]
+        assert self.mockapi.mock_calls == []
+
+    def test_header_alert(self):
+        m_hte = Mock()
+        m_ice = Mock()
+        m_je = Mock()
+        m_ui = Mock()
+        m_eat = Mock()
+        m_eaa = Mock()
+        with patch.multiple(
+            pb,
+            html_to_etree=DEFAULT,
+            inline_css_etree=DEFAULT,
+            jiveize_etree=DEFAULT,
+            _upload_images=DEFAULT,
+            etree_add_toc=DEFAULT,
+            etree_add_alert=DEFAULT
+        ) as mocks:
+            with patch('%s.etree.tostring' % pbm) as mock_tostring:
+                mock_tostring.return_value = 'fixed_string'
+                mocks['html_to_etree'].return_value = m_hte
+                mocks['inline_css_etree'].return_value = m_ice
+                mocks['jiveize_etree'].return_value = m_je
+                mocks['etree_add_toc'].return_value = m_eat
+                mocks['etree_add_alert'].return_value = m_eaa
+                mocks['_upload_images'].return_value = m_ui, {'images': 'foo'}
+                res = self.cls.dict_for_html_document(
+                    'subj', 'body', images={'input': 'images'},
+                    header_alert='foobarAlert'
+                )
+        assert res == ({
+            'type': 'document',
+            'subject': 'subj',
+            'content': {
+                'type': 'text/html',
+                'text': 'fixed_string',
+                'editable': True
+            },
+            'via': {
+                'displayName': 'Python jiveapi v%s' % VERSION,
+                'url': PROJECT_URL
+            }
+        }, {'images': 'foo'})
+        assert mocks['html_to_etree'].mock_calls == [call('body')]
+        assert mocks['inline_css_etree'].mock_calls == [call(m_hte)]
+        assert mocks['jiveize_etree'].mock_calls == [call(m_ice)]
+        assert mocks['etree_add_toc'].mock_calls == []
+        assert mocks['etree_add_alert'].mock_calls == [
+            call(m_je, 'foobarAlert', header=True)
+        ]
+        assert mocks['_upload_images'].mock_calls == [
+            call(m_eaa, {'input': 'images'})
+        ]
+        assert mock_tostring.mock_calls == [call(m_ui)]
+        assert self.mockapi.mock_calls == []
+
+    def test_header_alert_and_toc(self):
+        m_hte = Mock()
+        m_ice = Mock()
+        m_je = Mock()
+        m_ui = Mock()
+        m_eat = Mock()
+        m_eaa = Mock()
+        with patch.multiple(
+            pb,
+            html_to_etree=DEFAULT,
+            inline_css_etree=DEFAULT,
+            jiveize_etree=DEFAULT,
+            _upload_images=DEFAULT,
+            etree_add_toc=DEFAULT,
+            etree_add_alert=DEFAULT
+        ) as mocks:
+            with patch('%s.etree.tostring' % pbm) as mock_tostring:
+                mock_tostring.return_value = 'fixed_string'
+                mocks['html_to_etree'].return_value = m_hte
+                mocks['inline_css_etree'].return_value = m_ice
+                mocks['jiveize_etree'].return_value = m_je
+                mocks['etree_add_toc'].return_value = m_eat
+                mocks['etree_add_alert'].return_value = m_eaa
+                mocks['_upload_images'].return_value = m_ui, {'images': 'foo'}
+                res = self.cls.dict_for_html_document(
+                    'subj', 'body', images={'input': 'images'},
+                    header_alert='foobarAlert', toc=True
+                )
+        assert res == ({
+            'type': 'document',
+            'subject': 'subj',
+            'content': {
+                'type': 'text/html',
+                'text': 'fixed_string',
+                'editable': True
+            },
+            'via': {
+                'displayName': 'Python jiveapi v%s' % VERSION,
+                'url': PROJECT_URL
+            }
+        }, {'images': 'foo'})
+        assert mocks['html_to_etree'].mock_calls == [call('body')]
+        assert mocks['inline_css_etree'].mock_calls == [call(m_hte)]
+        assert mocks['jiveize_etree'].mock_calls == [call(m_ice)]
+        # header gets applied before toc
+        assert mocks['etree_add_toc'].mock_calls == [
+            call(m_eaa)
+        ]
+        assert mocks['etree_add_alert'].mock_calls == [
+            call(m_je, 'foobarAlert', header=True)
+        ]
+        assert mocks['_upload_images'].mock_calls == [
+            call(m_eat, {'input': 'images'})
+        ]
+        assert mock_tostring.mock_calls == [call(m_ui)]
+        assert self.mockapi.mock_calls == []
+
+    def test_footer_alert(self):
+        m_hte = Mock()
+        m_ice = Mock()
+        m_je = Mock()
+        m_ui = Mock()
+        m_eat = Mock()
+        m_eaa = Mock()
+        with patch.multiple(
+            pb,
+            html_to_etree=DEFAULT,
+            inline_css_etree=DEFAULT,
+            jiveize_etree=DEFAULT,
+            _upload_images=DEFAULT,
+            etree_add_toc=DEFAULT,
+            etree_add_alert=DEFAULT
+        ) as mocks:
+            with patch('%s.etree.tostring' % pbm) as mock_tostring:
+                mock_tostring.return_value = 'fixed_string'
+                mocks['html_to_etree'].return_value = m_hte
+                mocks['inline_css_etree'].return_value = m_ice
+                mocks['jiveize_etree'].return_value = m_je
+                mocks['etree_add_toc'].return_value = m_eat
+                mocks['etree_add_alert'].return_value = m_eaa
+                mocks['_upload_images'].return_value = m_ui, {'images': 'foo'}
+                res = self.cls.dict_for_html_document(
+                    'subj', 'body', images={'input': 'images'},
+                    footer_alert='footerAlert'
+                )
+        assert res == ({
+            'type': 'document',
+            'subject': 'subj',
+            'content': {
+                'type': 'text/html',
+                'text': 'fixed_string',
+                'editable': True
+            },
+            'via': {
+                'displayName': 'Python jiveapi v%s' % VERSION,
+                'url': PROJECT_URL
+            }
+        }, {'images': 'foo'})
+        assert mocks['html_to_etree'].mock_calls == [call('body')]
+        assert mocks['inline_css_etree'].mock_calls == [call(m_hte)]
+        assert mocks['jiveize_etree'].mock_calls == [call(m_ice)]
+        assert mocks['etree_add_toc'].mock_calls == []
+        assert mocks['etree_add_alert'].mock_calls == [
+            call(m_je, 'footerAlert', header=False)
+        ]
+        assert mocks['_upload_images'].mock_calls == [
+            call(m_eaa, {'input': 'images'})
+        ]
+        assert mock_tostring.mock_calls == [call(m_ui)]
+        assert self.mockapi.mock_calls == []
+
+    def test_header_and_footer_alerts(self):
+        m_hte = Mock()
+        m_ice = Mock()
+        m_je = Mock()
+        m_ui = Mock()
+        m_eat = Mock()
+        m_eaa1 = Mock()
+        m_eaa2 = Mock()
+        with patch.multiple(
+            pb,
+            html_to_etree=DEFAULT,
+            inline_css_etree=DEFAULT,
+            jiveize_etree=DEFAULT,
+            _upload_images=DEFAULT,
+            etree_add_toc=DEFAULT,
+            etree_add_alert=DEFAULT
+        ) as mocks:
+            with patch('%s.etree.tostring' % pbm) as mock_tostring:
+                mock_tostring.return_value = 'fixed_string'
+                mocks['html_to_etree'].return_value = m_hte
+                mocks['inline_css_etree'].return_value = m_ice
+                mocks['jiveize_etree'].return_value = m_je
+                mocks['etree_add_toc'].return_value = m_eat
+                mocks['etree_add_alert'].side_effect = [m_eaa1, m_eaa2]
+                mocks['_upload_images'].return_value = m_ui, {'images': 'foo'}
+                res = self.cls.dict_for_html_document(
+                    'subj', 'body', images={'input': 'images'},
+                    header_alert=('warning', 'headerWarning'),
+                    footer_alert=('danger', 'footerDanger')
+                )
+        assert res == ({
+            'type': 'document',
+            'subject': 'subj',
+            'content': {
+                'type': 'text/html',
+                'text': 'fixed_string',
+                'editable': True
+            },
+            'via': {
+                'displayName': 'Python jiveapi v%s' % VERSION,
+                'url': PROJECT_URL
+            }
+        }, {'images': 'foo'})
+        assert mocks['html_to_etree'].mock_calls == [call('body')]
+        assert mocks['inline_css_etree'].mock_calls == [call(m_hte)]
+        assert mocks['jiveize_etree'].mock_calls == [call(m_ice)]
+        assert mocks['etree_add_toc'].mock_calls == []
+        assert mocks['etree_add_alert'].mock_calls == [
+            call(m_je, ('warning', 'headerWarning'), header=True),
+            call(m_eaa1, ('danger', 'footerDanger'), header=False)
+        ]
+        assert mocks['_upload_images'].mock_calls == [
+            call(m_eaa2, {'input': 'images'})
+        ]
+        assert mock_tostring.mock_calls == [call(m_ui)]
         assert self.mockapi.mock_calls == []
 
     def test_no_jiveize(self):
@@ -333,18 +630,24 @@ class TestDictForHtmlDocument(ContentTester):
         m_ice = Mock()
         m_je = Mock()
         m_ui = Mock()
+        m_eat = Mock()
+        m_eaa = Mock()
         with patch.multiple(
             pb,
             html_to_etree=DEFAULT,
             inline_css_etree=DEFAULT,
             jiveize_etree=DEFAULT,
-            _upload_images=DEFAULT
+            _upload_images=DEFAULT,
+            etree_add_toc=DEFAULT,
+            etree_add_alert=DEFAULT
         ) as mocks:
             with patch('%s.etree.tostring' % pbm) as mock_tostring:
                 mock_tostring.return_value = 'fixed_string'
                 mocks['html_to_etree'].return_value = m_hte
                 mocks['inline_css_etree'].return_value = m_ice
                 mocks['jiveize_etree'].return_value = m_je
+                mocks['etree_add_toc'].return_value = m_eat
+                mocks['etree_add_alert'].return_value = m_eaa
                 mocks['_upload_images'].return_value = m_ui, {'images': 'foo'}
                 res = self.cls.dict_for_html_document(
                     'subj', 'body', jiveize=False
@@ -364,6 +667,8 @@ class TestDictForHtmlDocument(ContentTester):
         assert mocks['html_to_etree'].mock_calls == [call('body')]
         assert mocks['inline_css_etree'].mock_calls == [call(m_hte)]
         assert mocks['jiveize_etree'].mock_calls == []
+        assert mocks['etree_add_toc'].mock_calls == []
+        assert mocks['etree_add_alert'].mock_calls == []
         assert mocks['_upload_images'].mock_calls == [call(m_ice, {})]
         assert mock_tostring.mock_calls == [call(m_ui)]
         assert self.mockapi.mock_calls == []
@@ -373,18 +678,24 @@ class TestDictForHtmlDocument(ContentTester):
         m_ice = Mock()
         m_je = Mock()
         m_ui = Mock()
+        m_eat = Mock()
+        m_eaa = Mock()
         with patch.multiple(
             pb,
             html_to_etree=DEFAULT,
             inline_css_etree=DEFAULT,
             jiveize_etree=DEFAULT,
-            _upload_images=DEFAULT
+            _upload_images=DEFAULT,
+            etree_add_toc=DEFAULT,
+            etree_add_alert=DEFAULT
         ) as mocks:
             with patch('%s.etree.tostring' % pbm) as mock_tostring:
                 mock_tostring.return_value = 'fixed_string'
                 mocks['html_to_etree'].return_value = m_hte
                 mocks['inline_css_etree'].return_value = m_ice
                 mocks['jiveize_etree'].return_value = m_je
+                mocks['etree_add_toc'].return_value = m_eat
+                mocks['etree_add_alert'].return_value = m_eaa
                 mocks['_upload_images'].return_value = m_ui, {'images': 'foo'}
                 res = self.cls.dict_for_html_document(
                     'subj', 'body', inline_css=False
@@ -404,6 +715,8 @@ class TestDictForHtmlDocument(ContentTester):
         assert mocks['html_to_etree'].mock_calls == [call('body')]
         assert mocks['inline_css_etree'].mock_calls == []
         assert mocks['jiveize_etree'].mock_calls == [call(m_hte)]
+        assert mocks['etree_add_toc'].mock_calls == []
+        assert mocks['etree_add_alert'].mock_calls == []
         assert mocks['_upload_images'].mock_calls == [call(m_je, {})]
         assert mock_tostring.mock_calls == [call(m_ui)]
         assert self.mockapi.mock_calls == []
@@ -413,18 +726,24 @@ class TestDictForHtmlDocument(ContentTester):
         m_ice = Mock()
         m_je = Mock()
         m_ui = Mock()
+        m_eat = Mock()
+        m_eaa = Mock()
         with patch.multiple(
             pb,
             html_to_etree=DEFAULT,
             inline_css_etree=DEFAULT,
             jiveize_etree=DEFAULT,
-            _upload_images=DEFAULT
+            _upload_images=DEFAULT,
+            etree_add_toc=DEFAULT,
+            etree_add_alert=DEFAULT
         ) as mocks:
             with patch('%s.etree.tostring' % pbm) as mock_tostring:
                 mock_tostring.return_value = 'fixed_string'
                 mocks['html_to_etree'].return_value = m_hte
                 mocks['inline_css_etree'].return_value = m_ice
                 mocks['jiveize_etree'].return_value = m_je
+                mocks['etree_add_toc'].return_value = m_eat
+                mocks['etree_add_alert'].return_value = m_eaa
                 mocks['_upload_images'].return_value = m_ui, {'images': 'foo'}
                 res = self.cls.dict_for_html_document(
                     'subj', 'body', handle_images=False
@@ -444,6 +763,8 @@ class TestDictForHtmlDocument(ContentTester):
         assert mocks['html_to_etree'].mock_calls == [call('body')]
         assert mocks['inline_css_etree'].mock_calls == [call(m_hte)]
         assert mocks['jiveize_etree'].mock_calls == [call(m_ice)]
+        assert mocks['etree_add_toc'].mock_calls == []
+        assert mocks['etree_add_alert'].mock_calls == []
         assert mocks['_upload_images'].mock_calls == []
         assert mock_tostring.mock_calls == [call(m_je)]
         assert self.mockapi.mock_calls == []
@@ -453,18 +774,24 @@ class TestDictForHtmlDocument(ContentTester):
         m_ice = Mock()
         m_je = Mock()
         m_ui = Mock()
+        m_eat = Mock()
+        m_eaa = Mock()
         with patch.multiple(
             pb,
             html_to_etree=DEFAULT,
             inline_css_etree=DEFAULT,
             jiveize_etree=DEFAULT,
-            _upload_images=DEFAULT
+            _upload_images=DEFAULT,
+            etree_add_toc=DEFAULT,
+            etree_add_alert=DEFAULT
         ) as mocks:
             with patch('%s.etree.tostring' % pbm) as mock_tostring:
                 mock_tostring.return_value = b'fixed_string'
                 mocks['html_to_etree'].return_value = m_hte
                 mocks['inline_css_etree'].return_value = m_ice
                 mocks['jiveize_etree'].return_value = m_je
+                mocks['etree_add_toc'].return_value = m_eat
+                mocks['etree_add_alert'].return_value = m_eaa
                 mocks['_upload_images'].return_value = m_ui, {'images': 'foo'}
                 res = self.cls.dict_for_html_document(
                     'subj', 'body', tags=['foo', 'bar', 'baz']
@@ -489,18 +816,24 @@ class TestDictForHtmlDocument(ContentTester):
         m_ice = Mock()
         m_je = Mock()
         m_ui = Mock()
+        m_eat = Mock()
+        m_eaa = Mock()
         with patch.multiple(
             pb,
             html_to_etree=DEFAULT,
             inline_css_etree=DEFAULT,
             jiveize_etree=DEFAULT,
-            _upload_images=DEFAULT
+            _upload_images=DEFAULT,
+            etree_add_toc=DEFAULT,
+            etree_add_alert=DEFAULT
         ) as mocks:
             with patch('%s.etree.tostring' % pbm) as mock_tostring:
                 mock_tostring.return_value = 'fixed_string'
                 mocks['html_to_etree'].return_value = m_hte
                 mocks['inline_css_etree'].return_value = m_ice
                 mocks['jiveize_etree'].return_value = m_je
+                mocks['etree_add_toc'].return_value = m_eat
+                mocks['etree_add_alert'].return_value = m_eaa
                 mocks['_upload_images'].return_value = m_ui, {'images': 'foo'}
                 res = self.cls.dict_for_html_document(
                     'subj', 'body', place_id='12345'
@@ -527,18 +860,24 @@ class TestDictForHtmlDocument(ContentTester):
         m_ice = Mock()
         m_je = Mock()
         m_ui = Mock()
+        m_eat = Mock()
+        m_eaa = Mock()
         with patch.multiple(
             pb,
             html_to_etree=DEFAULT,
             inline_css_etree=DEFAULT,
             jiveize_etree=DEFAULT,
-            _upload_images=DEFAULT
+            _upload_images=DEFAULT,
+            etree_add_toc=DEFAULT,
+            etree_add_alert=DEFAULT
         ) as mocks:
             with patch('%s.etree.tostring' % pbm) as mock_tostring:
                 mock_tostring.return_value = 'fixed_string'
                 mocks['html_to_etree'].return_value = m_hte
                 mocks['inline_css_etree'].return_value = m_ice
                 mocks['jiveize_etree'].return_value = m_je
+                mocks['etree_add_toc'].return_value = m_eat
+                mocks['etree_add_alert'].return_value = m_eaa
                 mocks['_upload_images'].return_value = m_ui, {'images': 'foo'}
                 res = self.cls.dict_for_html_document(
                     'subj', 'body', visibility='hidden'
@@ -698,6 +1037,110 @@ class TestHtmlAcceptance(object):
             no_sourcecode_style=False
         )
         assert etree.tostring(res).decode() == expected
+
+
+class TestEtreeAddToc(object):
+
+    def test_add_toc(self):
+        html = '<p>foo</p>'
+        tree = JiveContent.html_to_etree(html)
+        result = JiveContent.etree_add_toc(tree)
+        body = result.find('body')
+        assert body[0].tag == 'p'
+        p = body[0]
+        assert p.attrib['style'] == 'color: #24292e; margin-top: 0; ' \
+                                    'margin-bottom: 16px;'
+        assert p[0].tag == 'img'
+        img = p[0]
+        assert img.attrib['alt'] == 'Table of contents'
+        assert img.attrib['class'] == 'jive_macro jive_macro_toc'
+        assert img.attrib['src'] == 'https://assets2.jiveon.com/core/' \
+                                    '2016.3.9.0.b96715f/images/' \
+                                    'tiny_mce4/themes/advanced/img/toc.png'
+        assert img.attrib['jivemacro'] == 'toc'
+        assert body[1].tag == 'p'
+        assert body[1].text == 'foo'
+
+
+class TestEtreeAddAlert(object):
+
+    def test_add_header_string(self):
+        html = '<p>foo</p>'
+        tree = JiveContent.html_to_etree(html)
+        result = JiveContent.etree_add_alert(tree, 'FooBar')
+        body = result.find('body')
+        assert body[0].tag == 'pre'
+        pre = body[0]
+        assert pre.attrib['class'] == 'jive_text_macro jive_macro_alert'
+        assert pre.attrib['jivemacro'] == 'alert'
+        assert pre.attrib['__default_attr'] == 'info'
+        assert pre.attrib['_alert'] == 'info'
+        assert pre.attrib['_modifiedtitle'] == 'true'
+        assert pre[0].tag == 'p'
+        assert pre[0].text == 'FooBar'
+        assert len(pre) == 1
+        assert len(body) == 2
+        assert body[1].tag == 'p'
+        assert body[1].text == 'foo'
+
+    def test_add_header_tuple(self):
+        html = '<p>foo</p>'
+        tree = JiveContent.html_to_etree(html)
+        result = JiveContent.etree_add_alert(tree, ('danger', 'FooBar'))
+        body = result.find('body')
+        assert body[0].tag == 'pre'
+        pre = body[0]
+        assert pre.attrib['class'] == 'jive_text_macro jive_macro_alert'
+        assert pre.attrib['jivemacro'] == 'alert'
+        assert pre.attrib['__default_attr'] == 'danger'
+        assert pre.attrib['_alert'] == 'danger'
+        assert pre.attrib['_modifiedtitle'] == 'true'
+        assert pre[0].tag == 'p'
+        assert pre[0].text == 'FooBar'
+        assert len(pre) == 1
+        assert len(body) == 2
+        assert body[1].tag == 'p'
+        assert body[1].text == 'foo'
+
+    def test_add_footer_string(self):
+        html = '<p>foo</p>'
+        tree = JiveContent.html_to_etree(html)
+        result = JiveContent.etree_add_alert(tree, 'FooBar', header=False)
+        body = result.find('body')
+        assert body[0].tag == 'p'
+        assert body[0].text == 'foo'
+        assert body[1].tag == 'pre'
+        pre = body[1]
+        assert pre.attrib['class'] == 'jive_text_macro jive_macro_alert'
+        assert pre.attrib['jivemacro'] == 'alert'
+        assert pre.attrib['__default_attr'] == 'info'
+        assert pre.attrib['_alert'] == 'info'
+        assert pre.attrib['_modifiedtitle'] == 'true'
+        assert pre[0].tag == 'p'
+        assert pre[0].text == 'FooBar'
+        assert len(pre) == 1
+        assert len(body) == 2
+
+    def test_add_footer_tuple(self):
+        html = '<p>foo</p>'
+        tree = JiveContent.html_to_etree(html)
+        result = JiveContent.etree_add_alert(
+            tree, ('danger', 'FooBar'), header=False
+        )
+        body = result.find('body')
+        assert body[1].tag == 'pre'
+        pre = body[1]
+        assert pre.attrib['class'] == 'jive_text_macro jive_macro_alert'
+        assert pre.attrib['jivemacro'] == 'alert'
+        assert pre.attrib['__default_attr'] == 'danger'
+        assert pre.attrib['_alert'] == 'danger'
+        assert pre.attrib['_modifiedtitle'] == 'true'
+        assert pre[0].tag == 'p'
+        assert pre[0].text == 'FooBar'
+        assert len(pre) == 1
+        assert len(body) == 2
+        assert body[0].tag == 'p'
+        assert body[0].text == 'foo'
 
 
 class TestIsLocalImage(object):

@@ -31,8 +31,8 @@ Supported Actions
   * *Not Yet Implemented:* Create and Update HTML Posts given HTML content and some parameters, including most of the common parameters such as the place to post in, visibility, published/draft status, and keywords.
   * Modify HTML formatting to use Jive UI conventions ("jive-ize" HTML).
   * Given a HTML string that contains image tags referring to local images and the filesystem path containing the images, upload each of them to Jive and modify the HTML to point to the images' Jive URLs. Return metadata about the content and images to the user for future updates. Use this metadata on future updates to prevent re-uploading the same image.
-  * *Not yet implemented:* Option to modify HTML to insert Jive-style information/notice boxes as header and footer, such as information reminding users not to edit the document directly on Jive and giving links to the canonical source, commit, and build that last generated the content.
-  * *Not yet implemented:* Uploading "editable" Content that includes Jive macros, such as information boxes and table of contents.
+  * Option to modify HTML to insert Jive-style information/notice boxes as header and footer, such as information reminding users not to edit the document directly on Jive and giving links to the canonical source, commit, and build that last generated the content.
+  * Option to add a Jive Table of Contents macro to the beginning of the content.
 
 Requirements
 ------------
