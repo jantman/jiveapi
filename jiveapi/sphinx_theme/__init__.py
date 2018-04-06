@@ -35,59 +35,15 @@ Jason Antman <jason@jasonantman.com> <http://www.jasonantman.com>
 ##################################################################################
 """
 
-from setuptools import setup, find_packages
-from jiveapi.version import VERSION, PROJECT_URL
-
-with open('README.rst') as file:
-    long_description = file.read()
-
-requires = [
-    'requests < 3.0.0',
-    'premailer >=3.0.0, <4.0.0',
-    'lxml >=4.0.0, <5.0.0'
-]
+from os import path
 
 
-classifiers = [
-    'Development Status :: 3 - Alpha',
-    'License :: OSI Approved :: GNU Affero General Public License '
-    'v3 or later (AGPLv3+)',
-    'Natural Language :: English',
-    'Operating System :: OS Independent',
-    'Programming Language :: Python',
-    'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.4',
-    'Programming Language :: Python :: 3.5',
-    'Programming Language :: Python :: 3.6',
-    'Programming Language :: Python :: 3.7',
-    'Topic :: Documentation',
-    'Topic :: Office/Business'
-]
+def get_html_theme_path():
+    """Return list of HTML theme paths."""
+    cur_dir = path.abspath(path.dirname(path.dirname(__file__)))
+    return cur_dir
 
-setup(
-    name='jiveapi',
-    version=VERSION,
-    author='Jason Antman',
-    author_email='jason@jasonantman.com',
-    zip_safe=False,
-    packages=find_packages(),
-    package_data={
-        'jiveapi.sphinx_theme': [
-            'theme.conf',
-            '*.html'
-        ]
-    },
-    include_package_data=True,
-    url=PROJECT_URL,
-    description='Simple and limited Python client for Jive collaboration '
-                'software ReST API v3.',
-    long_description=long_description,
-    install_requires=requires,
-    keywords="jive collaboration client",
-    classifiers=classifiers,
-    entry_points={
-        'sphinx.html_themes': [
-            'jiveapi = jiveapi.sphinx_theme'
-        ]
-    }
-)
+
+# See http://www.sphinx-doc.org/en/stable/theming.html
+def setup(app):
+    app.add_html_theme('jiveapi', path.abspath(path.dirname(__file__)))
