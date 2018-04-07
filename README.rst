@@ -95,9 +95,10 @@ Development
 -----------
 
 1. Clone the git repo.
-2. ``virtualenv .``
+2. ``virtualenv --python=python3.6 .``
 3. ``python setup.py develop``
-4. Make changes as necessary. Run tests with ``tox``.
+4. ``pip install tox``
+5. Make changes as necessary. Run tests with ``tox``.
 
 License
 -------
