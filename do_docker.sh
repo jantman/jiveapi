@@ -1,4 +1,5 @@
-# jiveapi Dockerfile
+#!/bin/bash -x
+# jiveapi Docker build and push script
 ################################################################################
 # The latest version of this package is available at:
 #<http://github.com/jantman/jiveapi>
@@ -34,37 +35,47 @@
 #AUTHORS:
 #Jason Antman <jason@jasonantman.com> <http://www.jasonantman.com>
 ################################################################################
-FROM python:3.6.5-alpine3.7
 
-ARG version
-ARG jiveapi_version
-USER root
+if [ -z "$1" ]; then
+    >&2 echo "USAGE: do_docker.sh [build|push]"
+    exit 1
+fi
 
-COPY jiveapi.zip /tmp/jiveapi.zip
-COPY docker_image_test.py /tmp/docker_image_test.py
+function gettag {
+    # if it's a build of a tag, return that right away
+    [ ! -z "$TRAVIS_TAG" ] && { echo $TRAVIS_TAG; return 0; }
+    # otherwise, prefix with PR number if available
+    prefix=''
+    [ ! -z "$TRAVIS_PULL_REQUEST" ] && [[ "$TRAVIS_PULL_REQUEST" != "false" ]] && prefix="PR${TRAVIS_PULL_REQUEST}_"
+    ref="test_${prefix}$(git rev-parse --short HEAD)_$(date +%s)"
+    echo "${ref}"
+}
 
-RUN set -ex \
-    && apk add --no-cache \
-         libxml2 \
-         libxml2-dev \
-         libxslt \
-         libxslt-dev \
-    && apk add --no-cache --virtual .build-deps \
-         gcc \
-         linux-headers \
-         musl-dev \
-         openssl-dev \
-    && pip install /tmp/jiveapi.zip \
-    && pip install sphinx rinohtype boto3 sphinx_rtd_theme \
-    && apk del .build-deps \
-    && rm -f /tmp/jiveapi.zip \
-    && python /tmp/docker_image_test.py $jiveapi_version
+function getversion {
+    python -c 'from jiveapi.version import VERSION; print(VERSION)'
+}
 
-ENV LANG=en_US.UTF-8
+function dobuild {
+    tag=$(gettag)
+    version=$(getversion)
+    echo "Building Docker image..."
+    cp "${TOXDISTDIR}/jiveapi-${version}.zip" jiveapi.zip
+    docker build --build-arg version="$tag" --build-arg jiveapi_version="$version" --no-cache -t "jantman/jiveapi:${tag}" .
+    echo "Built image and tagged as: jantman/jiveapi:${tag}"
+}
 
-LABEL com.jasonantman.jiveapi.version=$version
-LABEL maintainer="jason@jasonantman.com"
-LABEL homepage="http://github.com/jantman/jiveapi"
-LABEL version=$version
+function dopush {
+    tag=$(gettag)
+    echo "Pushing Docker image with tag: ${tag}"
+    >&2 echo "NOT IMPLEMENTED!"
+    exit 1
+}
 
-ENTRYPOINT ["/bin/bash"]
+if [[ "$1" == "build" ]]; then
+    dobuild
+elif [[ "$1" == "push" ]]; then
+    dopush
+else
+    >&2 echo "USAGE: do_docker.sh [build|push]"
+    exit 1
+fi
