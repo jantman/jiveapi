@@ -1,5 +1,9 @@
 language: python
-sudo: false
+dist: trusty
+sudo: required
+
+services:
+  - docker
 
 cache: pip
 
@@ -15,6 +19,8 @@ matrix:
       env: TOXENV=py37
     - python: "3.6"
       env: TOXENV=docs
+    - python: "3.6"
+      env: TOXENV=docker
 
 install:
 - virtualenv --version
