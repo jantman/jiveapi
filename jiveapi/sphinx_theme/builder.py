@@ -38,14 +38,17 @@ Jason Antman <jason@jasonantman.com> <http://www.jasonantman.com>
 from docutils import nodes
 from docutils.writers.html4css1 import HTMLTranslator as BaseTranslator
 
-from sphinx.locale import _, __
+from sphinx.locale import __
 from sphinx.builders.html import SingleFileHTMLBuilder
-from sphinx.writers.html import HTMLWriter, HTMLTranslator
+from sphinx.writers.html import HTMLTranslator
 
 
 class JiveHtmlTranslator(HTMLTranslator):
     """
     Subclass of sphinx's built-in ``HTMLTranslator`` to fix some output nuances.
+    Mainly, Jive overwrites "id" elements on everything, so named anchors need
+    to use the deprecated ``name`` attribute. We also need to identify internal
+    hrefs that link to ``index.html#something`` and strip the leading filename.
     """
 
     def add_permalink_ref(self, node, title):

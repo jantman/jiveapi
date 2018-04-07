@@ -3,6 +3,7 @@ branch = True
 omit = lib/*
        jiveapi/tests/*
        setup.py
+       jiveapi/sphinx_theme/*
 
 [report]
 exclude_lines =

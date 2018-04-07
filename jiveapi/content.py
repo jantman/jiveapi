@@ -569,6 +569,14 @@ class JiveContent(object):
           via :py:func:`~.newline_to_br`.
         * For any HTML tags that are keys of :py:data:`~.TAGSTYLES`, set their
           style attribute according to :py:data:`~.TAGSTYLES`.
+        * Change the ``name`` attribute on all ``a`` elements to replace dashes
+          with underscores, and do the same on the ``href`` attributes of any
+          ``a`` elements that begin with ``#``. Apparently Jive breaks anchor
+          links that contain dashes.
+        * For any element with an ``id`` attribute, append a named anchor to it
+          with a name the same as its' id. If it is an anchor, copy the id to
+          the name. We do this because Jive removes or overwrites many id
+          attributes.
 
         Elements which have a "jivemacro" attribute present will not be
         modified.
@@ -592,14 +600,31 @@ class JiveContent(object):
             pre.getparent().replace(pre, newline_to_br(pre))
         # ok, now apply some general Fuel/Jive style fixes...
         for element in root.iter():
-            if element.tag not in TAGSTYLES.keys():
-                continue
+            # fix Sphinx footnote ``id`` elements
+            if element.attrib.get('id', '') != '':
+                _id = element.attrib['id']
+                if element.tag != 'a':
+                    element.append(etree.Element('a', name=_id))
+                else:
+                    if 'name' in element.attrib:
+                        logger.warning(
+                            'Overwriting existing name (%s) on <a> with '
+                            'id="%s"', element.attrib['name'], _id
+                        )
+                    element.attrib['name'] = _id
+            # update for jive styles as needed
             if (
-                'jivemacro' in element.attrib or
-                'jivemacro' in element.getparent().attrib
+                element.tag in TAGSTYLES.keys() and
+                'jivemacro' not in element.attrib and
+                'jivemacro' not in element.getparent().attrib
             ):
-                continue
-            element.attrib['style'] = TAGSTYLES[element.tag]
+                element.attrib['style'] = TAGSTYLES[element.tag]
+        # fix named anchors;
+        for elem in root.xpath('//a'):
+            if 'name' in elem.attrib:
+                elem.attrib['name'] = elem.attrib['name'].replace('-', '_')
+            if elem.attrib.get('href', '').startswith('#'):
+                elem.attrib['href'] = elem.attrib['href'].replace('-', '_')
         return root
 
     @staticmethod
@@ -761,6 +786,9 @@ class JiveContent(object):
                     images[img_sha256]['jive_object']['id'], img_sha256
                 )
                 img.set('src', images[img_sha256]['location'])
+                raise NotImplementedError(
+                    "call method to update all links to the image"
+                )
                 continue
             logger.debug(
                 'Image %s content-type=%s sha256=%s',
@@ -788,4 +816,7 @@ class JiveContent(object):
             logger.debug('Rewrite img src from "%s" to "%s"', src, img_uri)
             # set the src attribute to the Location
             img.set('src', img_uri)
+            raise NotImplementedError(
+                "call method to update all links to the image"
+            )
         return root, images
