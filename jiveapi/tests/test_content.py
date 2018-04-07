@@ -1332,14 +1332,22 @@ class TestLoadImageFromDisk(ContentTester):
         ]
 
 
-class DoNotTestUploadImages(ContentTester):
+class TestUploadImages(ContentTester):
 
     def test_remote_img(self):
         mock_html = E.HTML(
             E.HEAD(E.TITLE('Some Title')),
             E.BODY(
-                E.P('Hello\nGoodbye'),
-                E.IMG(src='http://example.com/local/img.png')
+                E.P(
+                    'Hello',
+                    E.A('imgLink', href='http://example.com/local/img.png'),
+                    'Goodbye'
+                ),
+                E.A(
+                    E.IMG(src='http://example.com/local/img.png'),
+                    href='http://example.com/local/img.png'
+                ),
+                E.A('otherlink', href='http://www.example.com')
             )
         )
         root = mock_html.getroottree()
@@ -1352,9 +1360,20 @@ class DoNotTestUploadImages(ContentTester):
                     root, images={'foo': {'bar': 'baz'}}
                 )
         assert newroot == root
-        imgs = newroot.xpath('//img')
-        assert len(imgs) == 1
-        assert imgs[0].get('src') == 'http://example.com/local/img.png'
+        body = newroot.find('body')
+        assert len(body) == 3
+        assert body[0].tag == 'p'
+        assert len(body[0]) == 1
+        assert body[0][0].tag == 'a'
+        assert body[0][0].text == 'imgLink'
+        assert body[0][0].get('href') == 'http://example.com/local/img.png'
+        assert body[1].tag == 'a'
+        assert len(body[1]) == 1
+        assert body[1].get('href') == 'http://example.com/local/img.png'
+        assert body[1][0].tag == 'img'
+        assert body[1][0].get('src') == 'http://example.com/local/img.png'
+        assert body[2].tag == 'a'
+        assert body[2].get('href') == 'http://www.example.com'
         assert res == {'foo': {'bar': 'baz'}}
         assert mock_ili.mock_calls == [
             call('http://example.com/local/img.png')
@@ -1366,8 +1385,16 @@ class DoNotTestUploadImages(ContentTester):
         mock_html = E.HTML(
             E.HEAD(E.TITLE('Some Title')),
             E.BODY(
-                E.P('Hello\nGoodbye'),
-                E.IMG(src='local/img.png')
+                E.P(
+                    'Hello',
+                    E.A('imgLink', href='local/img.png'),
+                    'Goodbye'
+                ),
+                E.A(
+                    E.IMG(src='local/img.png'),
+                    href='local/img.png'
+                ),
+                E.A('otherlink', href='http://www.example.com')
             )
         )
         root = mock_html.getroottree()
@@ -1382,9 +1409,21 @@ class DoNotTestUploadImages(ContentTester):
                     'image/png', b'imgdata', sha256str
                 )
                 newroot, res = self.cls._upload_images(root)
-        imgs = newroot.xpath('//img')
-        assert len(imgs) == 1
-        assert imgs[0].get('src') == 'http://jive.example.com/myimage'
+        assert newroot == root
+        body = newroot.find('body')
+        assert len(body) == 3
+        assert body[0].tag == 'p'
+        assert len(body[0]) == 1
+        assert body[0][0].tag == 'a'
+        assert body[0][0].text == 'imgLink'
+        assert body[0][0].get('href') == 'http://jive.example.com/myimage'
+        assert body[1].tag == 'a'
+        assert len(body[1]) == 1
+        assert body[1].get('href') == 'http://jive.example.com/myimage'
+        assert body[1][0].tag == 'img'
+        assert body[1][0].get('src') == 'http://jive.example.com/myimage'
+        assert body[2].tag == 'a'
+        assert body[2].get('href') == 'http://www.example.com'
         assert res == {
             sha256str: {
                 'location': 'http://jive.example.com/myimage',
@@ -1402,8 +1441,16 @@ class DoNotTestUploadImages(ContentTester):
         mock_html = E.HTML(
             E.HEAD(E.TITLE('Some Title')),
             E.BODY(
-                E.P('Hello\nGoodbye'),
-                E.IMG(src='local/img.png')
+                E.P(
+                    'Hello',
+                    E.A('imgLink', href='local/img.png'),
+                    'Goodbye'
+                ),
+                E.A(
+                    E.IMG(src='local/img.png'),
+                    href='local/img.png'
+                ),
+                E.A('otherlink', href='http://www.example.com')
             )
         )
         root = mock_html.getroottree()
@@ -1427,9 +1474,21 @@ class DoNotTestUploadImages(ContentTester):
                         }
                     }
                 )
-        imgs = newroot.xpath('//img')
-        assert len(imgs) == 1
-        assert imgs[0].get('src') == 'http://jive.example.com/existing'
+        assert newroot == root
+        body = newroot.find('body')
+        assert len(body) == 3
+        assert body[0].tag == 'p'
+        assert len(body[0]) == 1
+        assert body[0][0].tag == 'a'
+        assert body[0][0].text == 'imgLink'
+        assert body[0][0].get('href') == 'http://jive.example.com/existing'
+        assert body[1].tag == 'a'
+        assert len(body[1]) == 1
+        assert body[1].get('href') == 'http://jive.example.com/existing'
+        assert body[1][0].tag == 'img'
+        assert body[1][0].get('src') == 'http://jive.example.com/existing'
+        assert body[2].tag == 'a'
+        assert body[2].get('href') == 'http://www.example.com'
         assert res == {
             sha256str: {
                 'location': 'http://jive.example.com/existing',

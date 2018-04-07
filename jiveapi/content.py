@@ -786,9 +786,14 @@ class JiveContent(object):
                     images[img_sha256]['jive_object']['id'], img_sha256
                 )
                 img.set('src', images[img_sha256]['location'])
-                raise NotImplementedError(
-                    "call method to update all links to the image"
+                # update any links to the image
+                logger.debug(
+                    'Rewriting links with href="%s" to href="%s"',
+                    src, images[img_sha256]['location']
                 )
+                for a in root.xpath('//a'):
+                    if a.get('href') == src:
+                        a.set('href', images[img_sha256]['location'])
                 continue
             logger.debug(
                 'Image %s content-type=%s sha256=%s',
@@ -816,7 +821,11 @@ class JiveContent(object):
             logger.debug('Rewrite img src from "%s" to "%s"', src, img_uri)
             # set the src attribute to the Location
             img.set('src', img_uri)
-            raise NotImplementedError(
-                "call method to update all links to the image"
+            # update any links to the image
+            logger.debug(
+                'Rewriting links with href="%s" to href="%s"', src, img_uri
             )
+            for a in root.xpath('//a'):
+                if a.get('href') == src:
+                    a.set('href', img_uri)
         return root, images
