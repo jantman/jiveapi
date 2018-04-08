@@ -4,20 +4,7 @@ sudo: required
 services:
 - docker
 cache: pip
-matrix:
-  include:
-  - python: '3.4'
-    env: TOXENV=py34
-  - python: '3.5'
-    env: TOXENV=py35
-  - python: '3.6'
-    env: TOXENV=py36
-  - python: 3.7-dev
-    env: TOXENV=py37
-  - python: '3.6'
-    env: TOXENV=docs
-  - python: '3.6'
-    env: TOXENV=docker
+
 install:
 - virtualenv --version
 - git config --global user.email "travisci@jasonantman.com"
@@ -26,30 +13,47 @@ install:
 - pip install codecov
 - pip freeze
 - virtualenv --version
+
 script:
 - tox -r
 after_success:
 - codecov
-deploy:
-  matrix:
-  - provider: pypi
-    user: jantman
-    password:
-      secure: eshkGXpg9puzakXeoc6g/lcD+0Q7FGQxw56mZk4tB2idcXCn6IPt+wyQOFr0hRRtFxKg294NKvtGTX8tXgQXl+LY5608Nzns59ADDqmyz1jJw6y26aRMeGs8M0rL4+WSfmaRPWFpzx5ImtnlhbqczjsBSoq2sDzZ8lpjsgY4KngoTRniYkqv7Hp6DbXKBwMArYFZIKxWwqv1OIvG2gCJ6/Qa6OiZMzyPzNvRr5lGsxGZXwOtsDt/aifh0mQ29SzchRvNp73aIyBN6P2cpur+JwkPJa1XmYZe0lT3Yu5YqmpDr3UZIp/pbdTwSv9AwXPGtpsy5jHo+gv7gEL7baXMZUagIlPzI39zvD8neUZIaR5T0RxY9hGE8hhxjRo15znFQ8ocMeCLw1Ym7IJemtboVUntnT+oQjPQvFTyLviF+fW7hvpe2YvQfd9NMk4SOXzyE1NJIqs/18BJrM/+HUXu/lEwhuT546e6Lpyqwy5ggAP3gCoPX0KK9uC1ZcTm/9J/I0j4g5PiT0L7OPdMfm/mXLajB08gO+TW0VdtF0Sw8oShBcOBdpP6M3GaroXmMmyCbjO+gMWF2JsElvvhZZPk9+j1VC/9fGJGwdHUKW3CVoiQH/ayhZtsE49Q0p8+Aq11wsHkHUu97KW7o3Qb4ve28NBbg6rbS2aN1Bp7NHiK15c=
-    skip_cleanup: true
-    on:
-      tags: true
-      repo: jantman/jiveapi
+
+stages:
+  - test
+  - name: deploy
+    if: tag IS present
+
+jobs:
+  include:
+    - stage: test
+      python: '3.4'
+      env: TOXENV=py34
+    - stage: test
+      python: '3.5'
+      env: TOXENV=py35
+    - stage: test
       python: '3.6'
-      condition: "$TOXENV = docker"
-  - provider: script
-    script: bash do_docker.sh push
-    skip_cleanup: true
-    on:
-      tags: true
-      repo: jantman/jiveapi
+      env: TOXENV=py36
+    - stage: test
+      python: 3.7-dev
+      env: TOXENV=py37
+    - stage: test
       python: '3.6'
-      condition: "$TOXENV = docker"
+      env: TOXENV=docs
+    - stage: test
+      python: '3.6'
+      env: TOXENV=docker
+    - stage: deploy
+      python: '3.6'
+      script: bash build_or_deploy.sh build
+      after_success: skip
+      deploy:
+        provider: script
+        script: bash build_or_deploy.sh push
+        skip_cleanup: true
+        on:
+          tags: true
 
 notifications:
   email:
@@ -59,6 +63,7 @@ notifications:
     - secure: ZSM4Rfh94ImAz9NpSSIAASm2NYl67knsbWB658Ez5lfEt9toRV0hG4syKD14j5METphzMA+q3GlcU8Ob9pSk17IsBI3KWGHeOOf9pFYvgHvzsg970feoVcnB67wAvMO7PZjWbS+cHBjXl/3NbEUy9D9qwOwnxKYlnha123PPegDpPZrXTR718rLq658ZQ5/bUMEeeJ5LZcRY7uXAtVDNo70H8yHHz+WFrW8hjeYDjcUmurOj72I2iFTwUcdrEKpCgOnE5Xn1rKuVnGHUO1JFq6GnSXGnyFqvu2FhInF8ROMJO1BSIL7lbcPZBTTsuegCHyVEB0EB/xp41KHitW8HlcTn2L2gC769fORpqa0+KqkPnQLcBYGkThRhRA+/gfSEhGL+3cioMMFOtgpBQmjsERgZ9rHpAVzlCPtwW8jjpb9B+pfoJpzrrb10p0QbrSFatLJ8/0e4taO8cfcyI3oiio9VkexUWC0bddpz7giUQcvy3uJKYGhOtQS56zObA4dWFZLCdAIHirlWoJjsE2X2Jl5L35Xt5uODyunQkEld8DJ9+Rf0HZUTY+wz+KwyLG7bAnIeIawvacddguoxGpuAYJb6+E9V062siyTdLpIdlXUH4eP/itcM2bFdOzoCupr/2IKaPJbNqjyTQxbDL9O3F61Ie5EDNUrutpcmJ+1KVAs=
     api_key:
       secure: pWDm0+uqV93aluGy+32Au+8VhfyGxc5KGo1ol36m4W6h8J34wtiCXxAL0dXXXwLTYoI1RWV70ZkjSf6QrKNMdVsulU3klBqo5Zzd5iFZca+B90IidgWGP9VP26/+ZqCxTyFwBx8mTjr7tP3VCxSSJRn4lzmZPl7k5GjlMExKkHKT2XeN7PIahfVACdggO4hhhc8BovdDrxsQx0kRYYe4Stlk24ua4o45MXvdOumlDtqeshHrnz50IK/Q7EhJamV0flB694DsxqgukITGiTcU7+IvRAkj72UJ+gZty5v5WKICdhMySFw28mKiDZxV6zOhGt2pWVx5tonZJN/osQtLB41U0PY+/sY8GIwHa5ITNz0V7XSWhpBKha4+1HYgp2g0ZAexSsQJ1nfeVuxyLcxCfc6XcVDxg0JcvQGzpgOWz8QNSiVLdEZ50veKuN166FCzq3CQiJsmNk1n6Cehbcu3imxj+RcVALQASVnRO5eG8Ki+aRggYhVorTWlalceaJiKOpvpeCErhOxNbtDQXHnovfsT5du2VMVSOF2hruzuUMlijIqFkcO4gq6x/BLSZe/1wds8L27vvrxYaUUsmwHfylxl8Hbzp+gU4Wk7LNf9lc6nyLRq1vn+CqQO0RfBRSFtWE4sLX7VyiR4TV7URvihOUbeYaOnOOs6t/PBrX8WQvQ=
+
 branches:
   except:
   - "/^noci-.*$/"
