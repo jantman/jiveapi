@@ -49,6 +49,7 @@ RUN set -ex \
          libxml2-dev \
          libxslt \
          libxslt-dev \
+         bash \
     && apk add --no-cache --virtual .build-deps \
          gcc \
          linux-headers \
