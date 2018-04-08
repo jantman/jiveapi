@@ -90,7 +90,7 @@ function pythonpush {
 if [[ "$1" == "build" ]]; then
     dockerbuild
     pythonbuild
-if [[ "$1" == "dockerbuild" ]]; then
+elif [[ "$1" == "dockerbuild" ]]; then
     dockerbuild
 elif [[ "$1" == "push" ]]; then
     dockerpush
