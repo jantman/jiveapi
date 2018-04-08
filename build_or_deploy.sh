@@ -58,16 +58,11 @@ function getversion {
     python -c 'from jiveapi.version import VERSION; print(VERSION)'
 }
 
-function dockerbuild {
+function dockertoxbuild {
     tag=$(gettag)
     version=$(getversion)
     echo "Building Docker image..."
-    if [ ! -z "$TOXDISTDIR" ]; then
-        cp "${TOXDISTDIR}/jiveapi-${version}.zip" jiveapi.zip
-    else
-        pythonbuild
-        cp "dist/jiveapi-${version}.zip" jiveapi.zip
-    fi
+    cp "${TOXDISTDIR}/jiveapi-${version}.zip" jiveapi.zip
     docker build --build-arg version="$tag" --build-arg jiveapi_version="$version" --no-cache -t "jantman/jiveapi:${tag}" .
     echo "Built image and tagged as: jantman/jiveapi:${tag}"
 }
@@ -94,10 +89,10 @@ function pythonpush {
 }
 
 if [[ "$1" == "build" ]]; then
-    dockerbuild
+    tox -r docker
     pythonbuild
 elif [[ "$1" == "dockerbuild" ]]; then
-    dockerbuild
+    dockertoxbuild
 elif [[ "$1" == "push" ]]; then
     dockerpush
     pythonpush
