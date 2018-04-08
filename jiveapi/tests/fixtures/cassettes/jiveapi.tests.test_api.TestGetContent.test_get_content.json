@@ -1,0 +1,92 @@
+{
+  "http_interactions": [
+    {
+      "recorded_at": "2018-03-30T22:37:13",
+      "request": {
+        "body": {
+          "encoding": "utf-8",
+          "string": ""
+        },
+        "headers": {
+          "Accept": [
+            "*/*"
+          ],
+          "Accept-Encoding": [
+            "identity"
+          ],
+          "Authorization": [
+            "Basic <JIVE-AUTH>"
+          ],
+          "Connection": [
+            "keep-alive"
+          ],
+          "User-Agent": [
+            "python-requests/2.18.4"
+          ]
+        },
+        "method": "GET",
+        "uri": "https://<JIVE-HOST>/api/core/v3/contents/1660403?directive=silent"
+      },
+      "response": {
+        "body": {
+          "encoding": null,
+          "string": "{\n  \"entityType\" : \"document\",\n  \"id\" : \"181245\",\n  \"resources\" : {\n    \"entitlements\" : {\n      \"allowed\" : [ \"GET\" ],\n      \"ref\" : \"https://<JIVE-HOST>/api/core/v3/contents/1660403/entitlements\"\n    },\n    \"outcomeTypes\" : {\n      \"allowed\" : [ \"GET\" ],\n      \"ref\" : \"https://<JIVE-HOST>/api/core/v3/contents/1660403/outcomeTypes\"\n    },\n    \"childOutcomeTypes\" : {\n      \"allowed\" : [ \"GET\" ],\n      \"ref\" : \"https://<JIVE-HOST>/api/core/v3/contents/1660403/childOutcomeTypes\"\n    },\n    \"followingIn\" : {\n      \"allowed\" : [ \"GET\", \"POST\" ],\n      \"ref\" : \"https://<JIVE-HOST>/api/core/v3/contents/1660403/followingIn\"\n    },\n    \"editHTML\" : {\n      \"allowed\" : [ \"GET\" ],\n      \"ref\" : \"https://<JIVE-HOST>/docs/DOC-181245/edit\"\n    },\n    \"attachments\" : {\n      \"allowed\" : [ \"GET\", \"POST\" ],\n      \"ref\" : \"https://<JIVE-HOST>/api/core/v3/attachments/contents/1660403\"\n    },\n    \"comments\" : {\n      \"allowed\" : [ \"GET\", \"POST\" ],\n      \"ref\" : \"https://<JIVE-HOST>/api/core/v3/contents/1660403/comments\"\n    },\n    \"read\" : {\n      \"allowed\" : [ \"DELETE\", \"POST\" ],\n      \"ref\" : \"https://<JIVE-HOST>/api/core/v3/contents/1660403/read\"\n    },\n    \"followers\" : {\n      \"allowed\" : [ \"GET\" ],\n      \"ref\" : \"https://<JIVE-HOST>/api/core/v3/contents/1660403/followers\"\n    },\n    \"pdf\" : {\n      \"allowed\" : [ \"GET\" ],\n      \"ref\" : \"https://<JIVE-HOST>/docs/DOC-181245.pdf\"\n    },\n    \"versions\" : {\n      \"allowed\" : [ \"GET\" ],\n      \"ref\" : \"https://<JIVE-HOST>/api/core/v3/versions/1660403\"\n    },\n    \"outcomes\" : {\n      \"allowed\" : [ \"GET\", \"POST\" ],\n      \"ref\" : \"https://<JIVE-HOST>/api/core/v3/contents/1660403/outcomes\"\n    },\n    \"self\" : {\n      \"allowed\" : [ \"GET\", \"DELETE\", \"PUT\" ],\n      \"ref\" : \"https://<JIVE-HOST>/api/core/v3/contents/1660403\"\n    },\n    \"html\" : {\n      \"allowed\" : [ \"GET\" ],\n      \"ref\" : \"https://<JIVE-HOST>/docs/DOC-181245\"\n    },\n    \"extprops\" : {\n      \"allowed\" : [ \"GET\", \"DELETE\", \"POST\" ],\n      \"ref\" : \"https://<JIVE-HOST>/api/core/v3/contents/1660403/extprops\"\n    },\n    \"helpful\" : {\n      \"allowed\" : [ \"GET\", \"POST\" ],\n      \"ref\" : \"https://<JIVE-HOST>/api/core/v3/contents/1660403/helpful\"\n    },\n    \"likes\" : {\n      \"allowed\" : [ \"GET\" ],\n      \"ref\" : \"https://<JIVE-HOST>/api/core/v3/contents/1660403/likes\"\n    }\n  },\n  \"followerCount\" : 1,\n  \"followed\" : true,\n  \"likeCount\" : 0,\n  \"published\" : \"2018-03-30T22:16:47.058+0000\",\n  \"tags\" : [ \"document\", \"example\" ],\n  \"updated\" : \"2018-03-30T22:16:47.076+0000\",\n  \"iconCss\" : \"jive-icon-document\",\n  \"contentID\" : \"1660403\",\n  \"author\" : {\n    \"id\" : \"8627\",\n    \"resources\" : {\n      \"reports\" : {\n        \"allowed\" : [ \"GET\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/@reports\"\n      },\n      \"followingIn\" : {\n        \"allowed\" : [ \"GET\", \"POST\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/followingIn\"\n      },\n      \"images\" : {\n        \"allowed\" : [ \"GET\", \"POST\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/images\"\n      },\n      \"activity\" : {\n        \"allowed\" : [ \"GET\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/activities\"\n      },\n      \"manager\" : {\n        \"allowed\" : [ \"GET\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/@manager\"\n      },\n      \"social\" : {\n        \"allowed\" : [ \"GET\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/@social\"\n      },\n      \"roles\" : {\n        \"allowed\" : [ \"GET\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/roles\"\n      },\n      \"streams\" : {\n        \"allowed\" : [ \"GET\", \"POST\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/streams\"\n      },\n      \"recognition\" : {\n        \"allowed\" : [ \"GET\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/@recognition\"\n      },\n      \"trendingContent\" : {\n        \"allowed\" : [ \"GET\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/@trendingContent\"\n      },\n      \"profilePrivacy\" : {\n        \"allowed\" : [ \"GET\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/profilePrivacy\"\n      },\n      \"trendingPlaces\" : {\n        \"allowed\" : [ \"GET\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/@trendingPlaces\"\n      },\n      \"avatar\" : {\n        \"allowed\" : [ \"GET\", \"DELETE\", \"PUT\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/avatar?a=1013\"\n      },\n      \"followers\" : {\n        \"allowed\" : [ \"GET\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/@followers\"\n      },\n      \"pages\" : {\n        \"allowed\" : [ \"GET\", \"POST\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/pages\"\n      },\n      \"colleagues\" : {\n        \"allowed\" : [ \"GET\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/@colleagues\"\n      },\n      \"following\" : {\n        \"allowed\" : [ \"GET\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/@following\"\n      },\n      \"members\" : {\n        \"allowed\" : [ \"GET\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/members/people/8627\"\n      },\n      \"self\" : {\n        \"allowed\" : [ \"GET\", \"PUT\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627\"\n      },\n      \"html\" : {\n        \"allowed\" : [ \"GET\" ],\n        \"ref\" : \"https://<JIVE-HOST>/people/<JIVE-USER>\"\n      },\n      \"securityGroups\" : {\n        \"allowed\" : [ \"GET\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/securityGroups\"\n      },\n      \"extprops\" : {\n        \"allowed\" : [ \"GET\", \"DELETE\", \"POST\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/extprops\"\n      },\n      \"tasks\" : {\n        \"allowed\" : [ \"GET\", \"POST\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/tasks\"\n      }\n    },\n    \"followerCount\" : 0,\n    \"followed\" : false,\n    \"published\" : \"2018-03-27T21:00:54.301+0000\",\n    \"updated\" : \"2018-03-30T22:37:13.567+0000\",\n    \"displayName\" : \"Jason Antman\",\n    \"mentionName\" : \"Jason Antman\",\n    \"emails\" : [ {\n      \"jive_label\" : \"Email\",\n      \"primary\" : true,\n      \"type\" : \"work\",\n      \"value\" : \"jason@jasonantman.com\",\n      \"jive_displayOrder\" : 4,\n      \"jive_summaryDisplayOrder\" : 2,\n      \"jive_showSummaryLabel\" : true\n    } ],\n    \"followingCount\" : 0,\n    \"directReportCount\" : 0,\n    \"jive\" : {\n      \"enabled\" : true,\n      \"external\" : false,\n      \"federated\" : true,\n      \"lastProfileUpdate\" : \"2018-03-27T21:00:56.017+0000\",\n      \"lastAuthenticated\" : \"2018-03-30T22:37:13.566+0000\",\n      \"level\" : {\n        \"description\" : \"Wayfarer\",\n        \"imageURI\" : \"https://rewards.imgix.net/prod_phx/b22e3911-28ef-480c-ae3b-ca791ba86952/levell1\",\n        \"name\" : \"Wayfarer\",\n        \"points\" : 32\n      },\n      \"locale\" : \"en_US\",\n      \"externalContributor\" : false,\n      \"sendable\" : true,\n      \"timeZone\" : \"America/Los_Angeles\",\n      \"username\" : \"<JIVE-USER>\",\n      \"visible\" : true,\n      \"termsAndConditionsRequired\" : false,\n      \"status\" : \"registered\"\n    },\n    \"name\" : {\n      \"familyName\" : \"Antman\",\n      \"formatted\" : \"Jason Antman\",\n      \"givenName\" : \"Jason\"\n    },\n    \"thumbnailId\" : \"1013\",\n    \"thumbnailUrl\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/avatar?a=1013\",\n    \"type\" : \"person\",\n    \"typeCode\" : 3\n  },\n  \"content\" : {\n    \"text\" : \"<body><!-- [DocumentBodyStart:463d4efa-ce58-424e-b3fb-7f02cbd36423] --><div class=\\\"jive-rendered-content\\\"><p>This is the body of some <strong>document</strong> that I created via the web UI. It is public to the entire instance.</p><p style=\\\"min-height: 8pt; padding: 0px;\\\">&#160;</p><p>It also has two tags, \\\"example\\\" and \\\"document\\\".</p></div><!-- [DocumentBodyEnd:463d4efa-ce58-424e-b3fb-7f02cbd36423] --></body>\",\n    \"editable\" : false,\n    \"type\" : \"text/html\"\n  },\n  \"favoriteCount\" : 0,\n  \"replyCount\" : 0,\n  \"status\" : \"published\",\n  \"subject\" : \"Some Public Document\",\n  \"viewCount\" : 3,\n  \"visibleToExternalContributors\" : false,\n  \"parentVisible\" : true,\n  \"parentContentVisible\" : true,\n  \"lastActivity\" : 1522448207076,\n  \"abuseCount\" : 0,\n  \"authors\" : [ {\n    \"id\" : \"8627\",\n    \"resources\" : {\n      \"reports\" : {\n        \"allowed\" : [ \"GET\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/@reports\"\n      },\n      \"followingIn\" : {\n        \"allowed\" : [ \"GET\", \"POST\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/followingIn\"\n      },\n      \"images\" : {\n        \"allowed\" : [ \"GET\", \"POST\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/images\"\n      },\n      \"activity\" : {\n        \"allowed\" : [ \"GET\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/activities\"\n      },\n      \"manager\" : {\n        \"allowed\" : [ \"GET\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/@manager\"\n      },\n      \"social\" : {\n        \"allowed\" : [ \"GET\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/@social\"\n      },\n      \"roles\" : {\n        \"allowed\" : [ \"GET\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/roles\"\n      },\n      \"streams\" : {\n        \"allowed\" : [ \"GET\", \"POST\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/streams\"\n      },\n      \"recognition\" : {\n        \"allowed\" : [ \"GET\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/@recognition\"\n      },\n      \"trendingContent\" : {\n        \"allowed\" : [ \"GET\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/@trendingContent\"\n      },\n      \"profilePrivacy\" : {\n        \"allowed\" : [ \"GET\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/profilePrivacy\"\n      },\n      \"trendingPlaces\" : {\n        \"allowed\" : [ \"GET\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/@trendingPlaces\"\n      },\n      \"avatar\" : {\n        \"allowed\" : [ \"GET\", \"DELETE\", \"PUT\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/avatar?a=1013\"\n      },\n      \"followers\" : {\n        \"allowed\" : [ \"GET\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/@followers\"\n      },\n      \"pages\" : {\n        \"allowed\" : [ \"GET\", \"POST\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/pages\"\n      },\n      \"colleagues\" : {\n        \"allowed\" : [ \"GET\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/@colleagues\"\n      },\n      \"following\" : {\n        \"allowed\" : [ \"GET\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/@following\"\n      },\n      \"members\" : {\n        \"allowed\" : [ \"GET\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/members/people/8627\"\n      },\n      \"self\" : {\n        \"allowed\" : [ \"GET\", \"PUT\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627\"\n      },\n      \"html\" : {\n        \"allowed\" : [ \"GET\" ],\n        \"ref\" : \"https://<JIVE-HOST>/people/<JIVE-USER>\"\n      },\n      \"securityGroups\" : {\n        \"allowed\" : [ \"GET\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/securityGroups\"\n      },\n      \"extprops\" : {\n        \"allowed\" : [ \"GET\", \"DELETE\", \"POST\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/extprops\"\n      },\n      \"tasks\" : {\n        \"allowed\" : [ \"GET\", \"POST\" ],\n        \"ref\" : \"https://<JIVE-HOST>/api/core/v3/people/8627/tasks\"\n      }\n    },\n    \"displayName\" : \"Jason Antman\",\n    \"emails\" : [ {\n      \"jive_label\" : \"Email\",\n      \"primary\" : true,\n      \"type\" : \"work\",\n      \"value\" : \"jason@jasonantman.com\",\n      \"jive_displayOrder\" : 4,\n      \"jive_summaryDisplayOrder\" : 2,\n      \"jive_showSummaryLabel\" : true\n    } ],\n    \"jive\" : {\n      \"enabled\" : true,\n      \"level\" : {\n        \"description\" : \"Wayfarer\",\n        \"imageURI\" : \"https://rewards.imgix.net/prod_phx/b22e3911-28ef-480c-ae3b-ca791ba86952/levell1\",\n        \"name\" : \"Wayfarer\",\n        \"points\" : 32\n      },\n      \"externalContributor\" : false,\n      \"username\" : \"<JIVE-USER>\",\n      \"visible\" : true\n    },\n    \"name\" : {\n      \"familyName\" : \"Antman\",\n      \"formatted\" : \"Jason Antman\",\n      \"givenName\" : \"Jason\"\n    },\n    \"type\" : \"person\",\n    \"typeCode\" : 3\n  } ],\n  \"authorship\" : \"author\",\n  \"categories\" : [ ],\n  \"visibility\" : \"all\",\n  \"outcomeTypes\" : [ {\n    \"id\" : \"8\",\n    \"name\" : \"official\",\n    \"shareable\" : false,\n    \"noteRequired\" : false,\n    \"urlAllowed\" : false,\n    \"generalNote\" : false,\n    \"confirmExclusion\" : true,\n    \"confirmUnmark\" : false,\n    \"type\" : \"outcomeType\"\n  }, {\n    \"id\" : \"3\",\n    \"name\" : \"pending\",\n    \"shareable\" : true,\n    \"noteRequired\" : true,\n    \"urlAllowed\" : false,\n    \"generalNote\" : false,\n    \"confirmExclusion\" : false,\n    \"confirmUnmark\" : false,\n    \"type\" : \"outcomeType\"\n  }, {\n    \"id\" : \"6\",\n    \"name\" : \"success\",\n    \"communityAudience\" : \"true\",\n    \"shareable\" : false,\n    \"noteRequired\" : false,\n    \"urlAllowed\" : false,\n    \"generalNote\" : true,\n    \"confirmExclusion\" : false,\n    \"confirmUnmark\" : false,\n    \"type\" : \"outcomeType\"\n  }, {\n    \"id\" : \"2\",\n    \"name\" : \"finalized\",\n    \"shareable\" : false,\n    \"noteRequired\" : false,\n    \"urlAllowed\" : false,\n    \"generalNote\" : false,\n    \"confirmExclusion\" : true,\n    \"confirmUnmark\" : true,\n    \"type\" : \"outcomeType\"\n  }, {\n    \"id\" : \"9\",\n    \"name\" : \"wip\",\n    \"confirmContentEdit\" : \"true\",\n    \"shareable\" : false,\n    \"noteRequired\" : false,\n    \"urlAllowed\" : false,\n    \"generalNote\" : false,\n    \"confirmExclusion\" : true,\n    \"confirmUnmark\" : true,\n    \"type\" : \"outcomeType\"\n  }, {\n    \"id\" : \"7\",\n    \"name\" : \"outdated\",\n    \"shareable\" : false,\n    \"noteRequired\" : false,\n    \"urlAllowed\" : true,\n    \"generalNote\" : false,\n    \"confirmExclusion\" : false,\n    \"confirmUnmark\" : false,\n    \"type\" : \"outcomeType\"\n  }, {\n    \"id\" : \"4\",\n    \"name\" : \"helpful\",\n    \"alternativeGrouping\" : \"true\",\n    \"shareable\" : false,\n    \"noteRequired\" : false,\n    \"urlAllowed\" : false,\n    \"generalNote\" : false,\n    \"confirmExclusion\" : false,\n    \"confirmUnmark\" : false,\n    \"type\" : \"outcomeType\"\n  } ],\n  \"restrictComments\" : false,\n  \"editDisabled\" : false,\n  \"version\" : 1,\n  \"attachments\" : [ ],\n  \"helpfulCount\" : 0,\n  \"type\" : \"document\",\n  \"typeCode\" : 102,\n  \"lastActivityDate\" : \"2018-03-30T22:16:47.076+0000\"\n}"
+        },
+        "headers": {
+          "Connection": [
+            "keep-alive"
+          ],
+          "Content-Length": [
+            "14577"
+          ],
+          "Content-Type": [
+            "application/json"
+          ],
+          "Date": [
+            "Fri, 30 Mar 2018 22:37:13 GMT"
+          ],
+          "Expires": [
+            "Fri, 30 Mar 2018 22:37:12 GMT"
+          ],
+          "P3P": [
+            "CP=\"CAO PSA OUR\""
+          ],
+          "Server": [
+            "Apache"
+          ],
+          "Set-Cookie": [
+            "jive.login.ts=1522449432778; Path=/; Secure; HttpOnly;HttpOnly",
+            "X-JCAPI-Token=RAIB78QG; Path=/; Secure; HttpOnly",
+            "jive.user.loggedIn=true; Path=/; Secure; HttpOnly;HttpOnly",
+            "jive.server.info=\"serverName=<JIVE-HOST>:serverPort=443:contextPath=:localName=localhost:localPort=9200:localAddr=127.0.0.1\"; Version=1; Path=/; Secure; HttpOnly;HttpOnly",
+            "BIGipServerpool_<JIVE-HOST>=109358602.20480.0000; path=/"
+          ],
+          "Vary": [
+            "Accept-Encoding"
+          ],
+          "X-Frame-Options": [
+            "SAMEORIGIN"
+          ],
+          "X-JIVE-USER-ID": [
+            "8627"
+          ],
+          "X-JSL": [
+            "D=961503 t=1522449432777396"
+          ],
+          "X-Jive-Flow-Id": [
+            "e3cc12a1-346a-11e8-9d50-005056a42896"
+          ],
+          "X-Jive-Request-Id": [
+            "e3cc12a0-346a-11e8-9d50-005056a42896"
+          ]
+        },
+        "status": {
+          "code": 200,
+          "message": "OK"
+        },
+        "url": "https://<JIVE-HOST>/api/core/v3/contents/1660403?directive=silent"
+      }
+    }
+  ],
+  "recorded_with": "betamax/0.8.1"
+}

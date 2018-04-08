@@ -1,0 +1,95 @@
+{
+  "http_interactions": [
+    {
+      "recorded_at": "2018-03-27T21:02:50",
+      "request": {
+        "body": {
+          "encoding": "utf-8",
+          "string": ""
+        },
+        "headers": {
+          "Accept": [
+            "*/*"
+          ],
+          "Authorization": [
+            "Basic <JIVE-AUTH>"
+          ],
+          "Connection": [
+            "keep-alive"
+          ],
+          "User-Agent": [
+            "python-requests/2.18.4"
+          ],
+          "accept-encoding": [
+            "identity"
+          ]
+        },
+        "method": "GET",
+        "uri": "https://<JIVE-HOST>/api/version"
+      },
+      "response": {
+        "body": {
+          "encoding": null,
+          "string": "{\n  \"jiveVersion\" : \"2016.3.8.1\",\n  \"jiveCoreVersions\" : [ {\n    \"version\" : 2,\n    \"revision\" : 3,\n    \"uri\" : \"/api/core/v2\",\n    \"documentation\" : \"https://developers.jivesoftware.com/api/v2/rest\"\n  }, {\n    \"version\" : 3,\n    \"revision\" : 15,\n    \"uri\" : \"/api/core/v3\",\n    \"documentation\" : \"https://developers.jivesoftware.com/api/v3/rest\"\n  } ],\n  \"instanceURL\" : \"https://<JIVE-HOST>\",\n  \"jiveEdition\" : {\n    \"product\" : \"cloud\",\n    \"tier\" : 999\n  }\n}"
+        },
+        "headers": {
+          "Cache-Control": [
+            "no-cache, no-store, no-cache, must-revalidate, private, max-age=0"
+          ],
+          "Connection": [
+            "keep-alive"
+          ],
+          "Content-Length": [
+            "469"
+          ],
+          "Content-Type": [
+            "application/json"
+          ],
+          "Date": [
+            "Tue, 27 Mar 2018 21:02:50 GMT"
+          ],
+          "Expires": [
+            "Tue, 27 Mar 2018 21:02:32 GMT"
+          ],
+          "P3P": [
+            "CP=\"CAO PSA OUR\""
+          ],
+          "Server": [
+            "Apache"
+          ],
+          "Set-Cookie": [
+            "jive.login.ts=1522184552411; Path=/; Secure; HttpOnly;HttpOnly",
+            "jive.user.loggedIn=true; Path=/; Secure; HttpOnly;HttpOnly",
+            "jive.server.info=\"serverName=<JIVE-HOST>:serverPort=443:contextPath=:localName=localhost:localPort=9200:localAddr=127.0.0.1\"; Version=1; Path=/; Secure; HttpOnly;HttpOnly",
+            "jive.security.context=\"3cT9KKgXyzSZIzALK16lngAAAAAB+Fp548cFzXXKytlWcf/OPgJLsa1Zspk+KSPwdUHJ/2ocWE6geZXpsbRCn7lIfw==\"; Version=1; Path=/; Secure; HttpOnly;HttpOnly",
+            "BIGipServerpool_<JIVE-HOST>=109358602.20480.0000; path=/"
+          ],
+          "Vary": [
+            "Accept-Encoding"
+          ],
+          "X-Frame-Options": [
+            "SAMEORIGIN"
+          ],
+          "X-JIVE-USER-ID": [
+            "8627"
+          ],
+          "X-JSL": [
+            "D=18304013 t=1522184552410309"
+          ],
+          "X-Jive-Flow-Id": [
+            "2acb9ab1-3202-11e8-9d50-005056a42896"
+          ],
+          "X-Jive-Request-Id": [
+            "2acb9ab0-3202-11e8-9d50-005056a42896"
+          ]
+        },
+        "status": {
+          "code": 200,
+          "message": "OK"
+        },
+        "url": "https://<JIVE-HOST>/api/version"
+      }
+    }
+  ],
+  "recorded_with": "betamax/0.8.1"
+}

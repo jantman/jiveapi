@@ -1,0 +1,92 @@
+{
+  "http_interactions": [
+    {
+      "recorded_at": "2018-03-30T22:28:06",
+      "request": {
+        "body": {
+          "encoding": "utf-8",
+          "string": ""
+        },
+        "headers": {
+          "Accept": [
+            "*/*"
+          ],
+          "Accept-Encoding": [
+            "identity"
+          ],
+          "Authorization": [
+            "Basic <JIVE-AUTH>"
+          ],
+          "Connection": [
+            "keep-alive"
+          ],
+          "User-Agent": [
+            "python-requests/2.18.4"
+          ]
+        },
+        "method": "GET",
+        "uri": "https://<JIVE-HOST>/api/core/v3/contents/99999999?directive=silent"
+      },
+      "response": {
+        "body": {
+          "encoding": null,
+          "string": "{\n  \"error\" : {\n    \"status\" : 404,\n    \"code\" : \"contentMissing\",\n    \"message\" : \"Missing content ID 99999999\"\n  }\n}"
+        },
+        "headers": {
+          "Connection": [
+            "keep-alive"
+          ],
+          "Content-Length": [
+            "118"
+          ],
+          "Content-Type": [
+            "application/json"
+          ],
+          "Date": [
+            "Fri, 30 Mar 2018 22:28:06 GMT"
+          ],
+          "Expires": [
+            "Fri, 30 Mar 2018 22:27:53 GMT"
+          ],
+          "P3P": [
+            "CP=\"CAO PSA OUR\""
+          ],
+          "Server": [
+            "Apache"
+          ],
+          "Set-Cookie": [
+            "jive.login.ts=1522448873660; Path=/; Secure; HttpOnly;HttpOnly",
+            "X-JCAPI-Token=XE75KEeS; Path=/; Secure; HttpOnly",
+            "jive.user.loggedIn=true; Path=/; Secure; HttpOnly;HttpOnly",
+            "jive.server.info=\"serverName=<JIVE-HOST>:serverPort=443:contextPath=:localName=localhost:localPort=9200:localAddr=127.0.0.1\"; Version=1; Path=/; Secure; HttpOnly;HttpOnly",
+            "BIGipServerpool_<JIVE-HOST>=126135818.20480.0000; path=/"
+          ],
+          "Vary": [
+            "Accept-Encoding"
+          ],
+          "X-Frame-Options": [
+            "SAMEORIGIN"
+          ],
+          "X-JIVE-USER-ID": [
+            "8627"
+          ],
+          "X-JSL": [
+            "D=12444795 t=1522448873659534"
+          ],
+          "X-Jive-Flow-Id": [
+            "96896fc1-3469-11e8-9323-005056a42898"
+          ],
+          "X-Jive-Request-Id": [
+            "96896fc0-3469-11e8-9323-005056a42898"
+          ]
+        },
+        "status": {
+          "code": 404,
+          "message": "Not Found"
+        },
+        "url": "https://<JIVE-HOST>/api/core/v3/contents/99999999?directive=silent"
+      }
+    }
+  ],
+  "recorded_with": "betamax/0.8.1"
+}
