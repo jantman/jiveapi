@@ -36,8 +36,10 @@
 #Jason Antman <jason@jasonantman.com> <http://www.jasonantman.com>
 ################################################################################
 
+set -x
+
 if [ -z "$1" ]; then
-    >&2 echo "USAGE: do_docker.sh [build|push]"
+    >&2 echo "USAGE: do_docker.sh [build|dockerbuild|push]"
     exit 1
 fi
 
@@ -55,7 +57,7 @@ function getversion {
     python -c 'from jiveapi.version import VERSION; print(VERSION)'
 }
 
-function dobuild {
+function dockerbuild {
     tag=$(gettag)
     version=$(getversion)
     echo "Building Docker image..."
@@ -64,7 +66,13 @@ function dobuild {
     echo "Built image and tagged as: jantman/jiveapi:${tag}"
 }
 
-function dopush {
+function pythonbuild {
+    rm -Rf dist
+    python setup.py sdist bdist_wheel
+    ls -l dist
+}
+
+function dockerpush {
     tag=$(gettag)
     if [[ "$TRAVIS" == "true" ]]; then
         echo "$DOCKER_HUB_PASS" | docker login -u "$DOCKER_HUB_USER" --password-stdin
@@ -74,11 +82,20 @@ function dopush {
     docker push "jantman/jiveapi:${tag}"
 }
 
+function pythonpush {
+    pip install twine
+    twine upload dist/*
+}
+
 if [[ "$1" == "build" ]]; then
-    dobuild
+    dockerbuild
+    pythonbuild
+elif [[ "$1" == "dockerbuild" ]]; then
+    dockerbuild
 elif [[ "$1" == "push" ]]; then
-    dopush
+    dockerpush
+    pythonpush
 else
-    >&2 echo "USAGE: do_docker.sh [build|push]"
+    >&2 echo "USAGE: do_docker.sh [build|dockerbuild|push]"
     exit 1
 fi
