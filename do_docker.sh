@@ -66,9 +66,12 @@ function dobuild {
 
 function dopush {
     tag=$(gettag)
-    echo "Pushing Docker image with tag: ${tag}"
-    >&2 echo "NOT IMPLEMENTED!"
-    exit 1
+    if [[ "$TRAVIS" == "true" ]]; then
+        echo "$DOCKER_HUB_PASS" | docker login -u "$DOCKER_HUB_USER" --password-stdin
+    fi
+    docker images
+    echo "Pushing Docker image: jantman/jiveapi:${tag}"
+    docker push "jantman/jiveapi:${tag}"
 }
 
 if [[ "$1" == "build" ]]; then
