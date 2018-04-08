@@ -89,7 +89,7 @@ function pythonpush {
 }
 
 if [[ "$1" == "build" ]]; then
-    tox -r docker
+    tox -r -e docker
     pythonbuild
 elif [[ "$1" == "dockerbuild" ]]; then
     dockertoxbuild
