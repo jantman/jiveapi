@@ -39,7 +39,7 @@
 set -x
 
 if [ -z "$1" ]; then
-    >&2 echo "USAGE: do_docker.sh [build|push]"
+    >&2 echo "USAGE: do_docker.sh [build|dockerbuild|push]"
     exit 1
 fi
 
@@ -87,14 +87,15 @@ function pythonpush {
     twine upload dist/*
 }
 
-python setup.py develop
 if [[ "$1" == "build" ]]; then
     dockerbuild
     pythonbuild
+if [[ "$1" == "dockerbuild" ]]; then
+    dockerbuild
 elif [[ "$1" == "push" ]]; then
     dockerpush
     pythonpush
 else
-    >&2 echo "USAGE: do_docker.sh [build|push]"
+    >&2 echo "USAGE: do_docker.sh [build|dockerbuild|push]"
     exit 1
 fi
