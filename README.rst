@@ -1,18 +1,32 @@
 jiveapi python package
 ======================
 
+.. image:: https://secure.travis-ci.org/jantman/jiveapi.png?branch=master
+   :target: http://travis-ci.org/jantman/jiveapi
+   :alt: travis-ci for master branch
+
+.. image:: https://readthedocs.org/projects/jiveapi/badge/?version=latest
+   :target: https://readthedocs.org/projects/jiveapi/?badge=latest
+   :alt: sphinx documentation for latest release
+
 .. image:: http://www.repostatus.org/badges/latest/wip.svg
    :alt: Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.
    :target: http://www.repostatus.org/#wip
 
-Simple and limited Python client for `Jive <https://www.jivesoftware.com/>`_ collaboration software `ReST API v3 <https://developers.jivesoftware.com/api/v3/cloud/rest/index.html>`_, along with utilities for massaging HTML to display better on Jive.
+Simple and limited Python client for `Jive <https://www.jivesoftware.com/>`_ collaboration software `ReST API v3 <https://developers.jivesoftware.com/api/v3/cloud/rest/index.html>`_, along with utilities for massaging HTML to display better on Jive. Also comes pre-installed in a Docker image and a Sphinx theme and builder for Jive-optimized HTML output.
+
+**Note: Full documentation is hosted at:** `jiveapi.readthedocs.io <http://jiveapi.readthedocs.io/>`_. **This README is just a short introduction.**
 
 Scope and Status
 ----------------
 
-I'm writing this to be a working Python wrapper around a small portion of the Jive ReST API - specifically, uploading/publishing blog posts ("Posts" API data type) and uploading/updating Documents. I'm doing this in my personal time, but we'll be using the project at work for a very limited requirement: "syndicating" documentation that we publish on internal web servers to our corporate Jive instance. I don't plan on adding support beyond what's required for that, but contributions are welcome.
+I'm writing this to be a working Python wrapper around a small portion of the Jive ReST API - specifically, uploading/publishing updating Documents, uploading embedded Images, and manipulating the input HTML to display better in Jive. I'm doing this in my personal time, but we'll be using the project at work for a very limited requirement: "syndicating" documentation that we publish on internal web servers (mostly Sphinx and Hugo static sites) to our corporate Jive instance. The main purpose for doing this is to reach a wider audience and for searchability, not to faithfully reproduce the layout and styling of the original HTML. I don't plan on adding support beyond what's required for that, but contributions are welcome.
 
 For the time being, this should be considered Alpha-quality software. It's young and likely only has a handful of code paths exercised on a regular basis, and from what I've seen in practice and in the documentation, I can only assume that Jive has many error conditions this software has yet to see. In short, for the time being, make sure you sanity check things or don't rely on this working 100% of the time. Bug reports are very welcome, but please be sure to include full debugging output.
+
+At least for this initial release, it is **highly recommended** that you capture DEBUG-level logging, as this will contain the Jive internal IDs needed if something goes wrong.
+
+Also be aware that Jive **heavily modifies** HTML, including stripping out and sometimes replacing ``id`` attributes, breaking any internal anchor links containing dashes, etc. The high-level methods in this package make a best effort to modify HTML to work in Jive, but nothing is guaranteed. Once again, this is focused on content not presentation.
 
 Supported Actions
 +++++++++++++++++
@@ -39,66 +53,17 @@ Supported Actions
 Requirements
 ------------
 
-* Python 3.4+. Yes, this package is *only* developed and tested against Python3. It *should* work under 2.7 as well, but that is neither tested nor supported.
+jiveapi is also available in a self-contained Docker image with all dependencies. See `https://hub.docker.com/r/jantman/jiveapi/ <https://hub.docker.com/r/jantman/jiveapi/>`_.
+
+* Python 3.4+. Yes, this package is *only* developed and tested against Python3, specifically 3.4 or later. It *should* work under 2.7 as well, but that is neither tested nor supported.
 * `requests <http://docs.python-requests.org/en/master/>`_
 * `premailer <http://github.com/peterbe/premailer>`_ (optional, only required for high-level JiveContent interface)
 * `lxml <http://lxml.de/>`_ (optional, only required for high-level JiveContent interface)
 
-Installation
-------------
-
-``pip install jiveapi``
-
-Authentication
---------------
-
-Version 3 of the Jive ReST API is rather limited in terms of `Authentication methods <https://developer.jivesoftware.com/intro/#building-an-api-client>`_: OAuth is only supported for Jive Add-Ons. The alternative is HTTP Basic, which is not supported for federated/SSO accounts. This project uses HTTP Basic auth, which requires a Jive local (service) account.
-
-Important Notes
----------------
-
-Content IDs
-+++++++++++
-
-When a Content object (e.g. Document, Post, etc.) is created in Jive it is assigned a unique contentID. This contentID must be provided in order to update or delete the content. It is up to you, the user, to store the contentIDs generated by this package when you create content objects. For example use it's enough to record them from the CLI output. For actual production use, I recommend using the Python API and storing the returned IDs in a database or key/value store, or committing them back to the git repository. Also note that even though I've never seen a Jive contentID that isn't ``^[0-9]+$``, the Jive API JSON presents and accepts them as strings and the API type documentation lists them as strings.
-
-For most Jive objects, you can obtain the ID by viewing it in the web interface and appending ``/api/v3`` to the URL. i.e. if you have a Space at ``https://sandbox.jiveon.com/community/developertest``, you can find its contentID in the JSON returned from ``https://sandbox.jiveon.com/community/developertest/api/v3``. It is **important** to note that the "id" field of the JSON is *not* the same as the "contentID" field.
-
-HTML
-++++
-
-Jive's HTML handling is somewhat strange. First, uploaded HTML for Content (Documents, Posts, etc.) must start at the ``<body>`` tag or lower, not be a full ``<html>`` document or have a ``<head>``. In most Jive installations that I've seen, the HTML needs to be massaged a bit to look correct in Jive. This package does/will include code for that.
-
 Usage
 -----
 
-jiveapi contains two main classes, ``JiveApi`` and ``JiveContent``. The ``JiveApi`` class contains the low-level methods that map directly to Jive's API, such as creating and updating Content and Images. These methods generally require dicts (serialized to JSON objects in the API calls) that comply with the Jive API documentation for each object type. The ``JiveContent`` class wraps an instance of ``JiveApi`` and provides higher-level convenience methods for generating these API calls such as posting a string of HTML as a Document in a specific Place. ``JiveContent`` also contains static helper methods, such as for manipulating HTML to appear properly in Jive.
-
-Examples
---------
-
-For examples of the use of the low-level methods in ``jiveapi.api.JiveApi``, see the source code of the unit tests and of the high-level ``jiveapi.content.JiveContent`` class.
-
-Jive Sandbox for Testing
-------------------------
-
-If you're interested in trying this against something other than your real Jive instance, Jive maintains `https://sandbox.jiveon.com/ <https://sandbox.jiveon.com/>`_ as a developer sandbox. There should be a "How to Access Sandbox" link in the header; as of the writing of this software, it's a completely automated process that should take less than five minutes (but result in a sales email that you can ignore if you wish).
-
-Testing
--------
-
-Testing is done via `tox <https://tox.readthedocs.io/en/latest/>`_ and `pytest <https://docs.pytest.org/en/latest/>`_. ``pip install tox`` then ``tox`` to run tests.
-
-The package itself uses the wonderful `requests package <http://docs.python-requests.org/en/master/>`_ as a HTTP(S) client. Tests use the `betamax <http://betamax.readthedocs.io/en/latest/index.html>`_ package to record and replay HTTP(S) requests and responses. When adding a new test using betamax, set ``JIVEAPI_TEST_MODE=--record`` in your environment to capture and record new requests - otherwise, outgoing HTTP requests will be blocked. To re-record a test, delete the current capture from ``tests/fixtures/cassettes``. Before committing test data, please inspect it and be sure that no sensitive information is included. To print all base64 bodies from a specific betamax "cassette", you can use ``jiveapi/tests/fixtures/showcassette.py``.
-
-Development
------------
-
-1. Clone the git repo.
-2. ``virtualenv --python=python3.6 .``
-3. ``python setup.py develop``
-4. ``pip install tox``
-5. Make changes as necessary. Run tests with ``tox``.
+**See the full documentation at:** `http://jiveapi.readthedocs.io/ <http://jiveapi.readthedocs.io/>`_
 
 License
 -------

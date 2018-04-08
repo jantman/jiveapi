@@ -1,5 +1,5 @@
 .. meta::
-   :description: A script and python module to check your AWS service limits and usage, and warn when usage approaches limits.
+   :description: Simple and limited Python client for Jive collaboration software ReST API v3, along with utilities for massaging HTML to display better on Jive.
 
 .. include:: ../../README.rst
 
@@ -9,7 +9,9 @@ Contents
 .. toctree::
    :maxdepth: 4
 
-   Usage <usage>
+   Getting Started <getting_started>
+   Usage and Examples <usage>
+   Development <development>
    API <modules>
    Changelog <changes>
 

@@ -130,7 +130,7 @@ class JiveApi(object):
         :param data: Data to POST.
         :type data: ``dict`` or ``list``
         :return: deserialized response JSON. Usually dict or list.
-        :raises: RequestFailedException
+        :raises: :py:exc:`~.RequestFailedException`
         """
         if path.startswith('http://') or path.startswith('https://'):
             # likely a pagination link
@@ -227,7 +227,8 @@ class JiveApi(object):
         :type publish_date: datetime.datetime
         :return: API response of Content object
         :rtype: dict
-        :raises: RequestFailedException, ContentConflictException
+        :raises: :py:exc:`~.RequestFailedException`,
+          :py:exc:`~.ContentConflictException`
         """
         logger.debug('Creating content...')
         url = 'core/v3/contents'
@@ -272,7 +273,8 @@ class JiveApi(object):
         :type update_date: datetime.datetime
         :return: API response of Content object
         :rtype: dict
-        :raises: RequestFailedException, ContentConflictException
+        :raises: :py:exc:`~.RequestFailedException`,
+          :py:exc:`~.ContentConflictException`
         """
         logger.debug('Updating content with contentID %s', content_id)
         url = 'core/v3/contents/%s' % content_id

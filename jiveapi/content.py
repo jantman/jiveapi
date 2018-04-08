@@ -148,10 +148,6 @@ class JiveContent(object):
         around :py:meth:`~.create_content` to assist with forming the content
         JSON, as well as to assist with HTML handling.
 
-        The format of the second element of the return value is the images dict
-        format described in this class under
-        :ref:`JiveContent Images Dict Format <images-dict-format>`.
-
         **Important:** In order to update the Document in the future, the entire
         return value of this method must be externally persisted and passed in
         to future method calls via the ``content_id`` and ``images``
@@ -209,10 +205,12 @@ class JiveContent(object):
           box type (one of "info", "success", "warning" or "danger") and the
           string content.
         :type footer_alert: ``str`` or ``tuple``
-        :return: 2-tuple of (``dict`` representation of the created Document
-          from the Jive API, ``dict`` images data to persist for updates)
-        :rtype: tuple
-        :raises: RequestFailedException, ContentConflictException
+        :return: dict describing the created content object in Jive. See
+          :ref:`JiveContent Return Dict Format <return-dict-format>` for
+          details.
+        :rtype: dict
+        :raises: :py:exc:`~.RequestFailedException`,
+          :py:exc:`~.ContentConflictException`
         """
         logger.debug('Generating API call dict for content')
         content, images = self.dict_for_html_document(
@@ -248,16 +246,15 @@ class JiveContent(object):
         around :py:meth:`~.update_content` to assist with forming the content
         JSON, as well as to assist with HTML handling.
 
-        The format of the second element of the return value is the images dict
-        format described in this class under
-        :ref:`JiveContent Images Dict Format <images-dict-format>`.
-
         **Important:** In order to update the Document in the future, the entire
         return value of this method must be externally persisted and passed in
         to future method calls via the ``content_id`` and ``images``
         parameters.
 
-        :param content_id: the Jive contentID to update
+        :param content_id: the Jive contentID to update. This is the
+          ``contentID`` element of the
+          :ref:`JiveContent Return Dict Format <return-dict-format>` that is
+          returned by this method or :py:meth:`~.create_html_document`.
         :type content_id: str
         :param subject: The subject / title of the Document.
         :type subject: str
@@ -313,13 +310,16 @@ class JiveContent(object):
         :type footer_alert: ``str`` or ``tuple``
         :param images: a dict of information about images that have been already
           uploaded for this Document. This parameter should be the value of the
-          ``images`` key from the return value of this method or of
-          :py:meth:`~.create_html_document`.
+          ``images`` key from the
+          :ref:`JiveContent Return Dict Format <return-dict-format>` that is
+          returned by this method or :py:meth:`~.create_html_document`.
         :type images: dict
-        :return: 2-tuple of (``dict`` representation of the updated Document
-          from the Jive API, ``dict`` images data to persist for updates)
-        :rtype: tuple
-        :raises: RequestFailedException, ContentConflictException
+        :return: dict describing the created content object in Jive. See
+          :ref:`JiveContent Return Dict Format <return-dict-format>` for
+          details.
+        :rtype: dict
+        :raises: :py:exc:`~.RequestFailedException`,
+          :py:exc:`~.ContentConflictException`
         """
         logger.debug('Generating API call dict for content')
         content, images = self.dict_for_html_document(
