@@ -37,6 +37,7 @@
 ################################################################################
 
 set -x
+set -e
 
 if [ -z "$1" ]; then
     >&2 echo "USAGE: do_docker.sh [build|dockerbuild|push]"
@@ -61,7 +62,12 @@ function dockerbuild {
     tag=$(gettag)
     version=$(getversion)
     echo "Building Docker image..."
-    cp "${TOXDISTDIR}/jiveapi-${version}.zip" jiveapi.zip
+    if [ ! -z "$TOXDISTDIR" ]; then
+        cp "${TOXDISTDIR}/jiveapi-${version}.zip" jiveapi.zip
+    else
+        pythonbuild
+        cp "dist/jiveapi-${version}.zip" jiveapi.zip
+    fi
     docker build --build-arg version="$tag" --build-arg jiveapi_version="$version" --no-cache -t "jantman/jiveapi:${tag}" .
     echo "Built image and tagged as: jantman/jiveapi:${tag}"
 }
