@@ -526,3 +526,64 @@ class TestUploadImage(object):
                 allow_redirects=False
             )
         ]
+
+
+class TestGetContentInPlace(object):
+
+    def test_get_content_in_place(self, api):
+        """Recorded API transaction using betamax. Depends on Jive state"""
+        res = api.get_content_in_place('94583')
+        items = [
+            {
+                'type': x['type'],
+                'subject': x['subject'],
+                'contentID': x['contentID']
+            }
+            for x in res
+        ]
+        assert items == [
+            {'type': 'document', 'subject': 'Test234', 'contentID': '1428798'},
+            {
+                'type': 'video',
+                'subject': 'Lumia 930 camera',
+                'contentID': '1378083'
+            },
+            {
+                'type': 'video',
+                'subject': 'Cool Engineering',
+                'contentID': '1378071'
+            },
+            {'type': 'idea', 'subject': 'raz Idea', 'contentID': '315384'},
+            {'type': 'document', 'subject': 'test', 'contentID': '236115'},
+            {'type': 'discussion', 'subject': 'Hallo', 'contentID': '236081'},
+            {'type': 'document', 'subject': 'tyest', 'contentID': '129727'},
+            {'type': 'discussion', 'subject': 'test', 'contentID': '107175'}
+        ]
+
+    def test_get_content_in_place_blog(self, api):
+        """Recorded API transaction using betamax. Depends on Jive state"""
+        res = api.get_content_in_place('94584')
+        items = [
+            {
+                'type': x['type'],
+                'subject': x['subject'],
+                'contentID': x['contentID']
+            }
+            for x in res
+        ]
+        assert items == [
+            {'type': 'post', 'subject': 'example', 'contentID': '129269'}
+        ]
+
+    def test_get_content_404(self, api):
+        """Recorded API transaction using betamax. Depends on Jive state"""
+        with pytest.raises(RequestFailedException) as excinfo:
+            api.get_content_in_place('99999999899')
+        assert excinfo.value.response.url == 'https://sandbox.jiveon.com/' \
+                                             'api/core/v3/places/99999999899/' \
+                                             'contents'
+        assert excinfo.value.response.status_code == 404
+        assert excinfo.value.response.reason == 'Not Found'
+        assert excinfo.value.error_message == 'Invalid place URI https://' \
+                                              'sandbox.jiveon.com/api/core/' \
+                                              'v3/places/99999999899/contents'

@@ -368,3 +368,36 @@ class JiveApi(object):
             'Uploaded image with Location: %s', res.headers['Location']
         )
         return res.headers['Location'], res.json()
+
+    def get_content_in_place(self, place_id):
+        """
+        Given the placeID of a Place in Jive, return a list of all Content in
+        that Place. Note that this list can be extremely long. Each element of
+        the list is a full representation of the Content object, including body,
+        which should (theoretically) be identical to that returned by
+        :py:meth:`~.get_content`. This is the low-level direct API call that
+        corresponds to `PlaceService - Get Content <https://developers.
+        jivesoftware.com/api/v3/cloud/rest/PlaceService.html#getContent%28String
+        ,%20List%3CString%3E,%20String,%20int,%20int,%20String,%20boolean%29>`_.
+
+        **Note:**
+
+        1. The ``place_id`` for a Place in Jive can be found by viewing the
+           place in the web UI and appending ``/api/v3`` to the URL. It will be
+           the ``placeID`` field of the resulting JSON response.
+        2. For some reason, while the web UI shows blog posts in Places, they
+           actually belong to a blog-specific child place and will not be
+           returned in the response. To retrieve blog posts, view the JSON
+           object for the place using the ``/api/v3`` URL and find the ``ref``
+           of the ``blog`` resource for it. You will then need to call this
+           method a second time with that placeID.
+
+        :param place_id: the Jive placeID of the Place to list Content in
+        :type place_id: str
+        :return: list of content object representation dicts for content in
+          the place
+        :rtype: ``list`` of ``dict``
+        """
+        return self._get(
+            'core/v3/places/%s/contents' % place_id
+        )

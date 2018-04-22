@@ -1,0 +1,101 @@
+{
+  "http_interactions": [
+    {
+      "recorded_at": "2018-04-22T01:38:36",
+      "request": {
+        "body": {
+          "encoding": "utf-8",
+          "string": ""
+        },
+        "headers": {
+          "Accept": [
+            "*/*"
+          ],
+          "Accept-Encoding": [
+            "identity"
+          ],
+          "Authorization": [
+            "Basic <JIVE-AUTH>"
+          ],
+          "Connection": [
+            "keep-alive"
+          ],
+          "User-Agent": [
+            "python-requests/2.18.4"
+          ]
+        },
+        "method": "GET",
+        "uri": "https://<JIVE-HOST>/api/core/v3/places/99999999899/contents"
+      },
+      "response": {
+        "body": {
+          "encoding": null,
+          "string": "{\n  \"error\" : {\n    \"status\" : 404,\n    \"code\" : \"placeInvalidURI\",\n    \"message\" : \"Invalid place URI https://<JIVE-HOST>/api/core/v3/places/99999999899/contents\"\n  }\n}"
+        },
+        "headers": {
+          "Cache-Control": [
+            "no-cache, no-store, no-cache, must-revalidate, private, max-age=0"
+          ],
+          "Connection": [
+            "keep-alive"
+          ],
+          "Content-Length": [
+            "176"
+          ],
+          "Content-Type": [
+            "application/json"
+          ],
+          "Date": [
+            "Sun, 22 Apr 2018 01:38:36 GMT"
+          ],
+          "Expires": [
+            "Sun, 22 Apr 2018 01:38:34 GMT"
+          ],
+          "P3P": [
+            "CP=\"CAO PSA OUR\""
+          ],
+          "Server": [
+            "Apache"
+          ],
+          "Set-Cookie": [
+            "jive.login.ts=1524361114909; Path=/; Secure; HttpOnly;HttpOnly",
+            "X-JCAPI-Token=fIPjX2IB; Path=/; Secure; HttpOnly",
+            "jive.user.loggedIn=true; Path=/; Secure; HttpOnly;HttpOnly",
+            "jive.server.info=\"serverName=<JIVE-HOST>:serverPort=443:contextPath=:localName=localhost:localPort=9200:localAddr=127.0.0.1\"; Version=1; Path=/; Secure; HttpOnly;HttpOnly",
+            "BIGipServerpool_<JIVE-HOST>=109358602.20480.0000; path=/"
+          ],
+          "Strict-Transport-Security": [
+            "max-age=31536000; includeSubDomains; preload"
+          ],
+          "Vary": [
+            "Accept-Encoding"
+          ],
+          "X-Content-Type-Options": [
+            "nosniff"
+          ],
+          "X-Frame-Options": [
+            "SAMEORIGIN"
+          ],
+          "X-JIVE-USER-ID": [
+            "8627"
+          ],
+          "X-JSL": [
+            "D=1128820 t=1524361114908764"
+          ],
+          "X-Jive-Flow-Id": [
+            "df23fcd1-45cd-11e8-bbb4-005056a42896"
+          ],
+          "X-Jive-Request-Id": [
+            "df23fcd0-45cd-11e8-bbb4-005056a42896"
+          ]
+        },
+        "status": {
+          "code": 404,
+          "message": "Not Found"
+        },
+        "url": "https://<JIVE-HOST>/api/core/v3/places/99999999899/contents"
+      }
+    }
+  ],
+  "recorded_with": "betamax/0.8.1"
+}
