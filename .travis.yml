@@ -36,7 +36,7 @@ jobs:
       python: '3.6'
       env: TOXENV=py36
     - stage: test
-      python: 3.7-dev
+      python: '3.7'
       env: TOXENV=py37
     - stage: test
       python: '3.6'
