@@ -501,15 +501,15 @@ class TestDictForHtmlDocument(ContentTester):
         assert mocks['html_to_etree'].mock_calls == [call('body')]
         assert mocks['inline_css_etree'].mock_calls == [call(m_hte)]
         assert mocks['jiveize_etree'].mock_calls == [call(m_ice)]
-        # header gets applied before toc
+        # header goes above toc, so it gets applied after
         assert mocks['etree_add_toc'].mock_calls == [
-            call(m_eaa)
+            call(m_je)
         ]
         assert mocks['etree_add_alert'].mock_calls == [
-            call(m_je, 'foobarAlert', header=True)
+            call(m_eat, 'foobarAlert', header=True)
         ]
         assert mocks['_upload_images'].mock_calls == [
-            call(m_eat, {'input': 'images'})
+            call(m_eaa, {'input': 'images'})
         ]
         assert mock_tostring.mock_calls == [call(m_ui)]
         assert self.mockapi.mock_calls == []

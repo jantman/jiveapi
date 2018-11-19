@@ -188,11 +188,11 @@ class JiveContent(object):
           Macros. Otherwise, they will not be processed by Jive.
         :type editable: bool
         :param toc: If True, insert the Jive RTE "Table of Contents" macro at
-          the beginning of the html. Setting this to True forces ``editable`` to
-          be True.
+          the beginning of the html, after header_alert (if specified). Setting
+          this to True forces ``editable`` to be True.
         :type toc: bool
         :param header_alert: If not None, insert a Jive RTE "Alert" macro at the
-          beginning of the html (after the Table of Contents, if present).
+          beginning of the html (before the Table of Contents, if present).
           Setting this to forces ``editable`` to be True. The value of this
           parameter can either be a string which will be used as the content of
           a "info" alert box, or a 2-tuple of the string alert box type (one of
@@ -291,11 +291,11 @@ class JiveContent(object):
           Macros. Otherwise, they will not be processed by Jive.
         :type editable: bool
         :param toc: If True, insert the Jive RTE "Table of Contents" macro at
-          the beginning of the html. Setting this to True forces ``editable`` to
-          be True.
+          the beginning of the html, after header_alert (if specified). Setting
+          this to True forces ``editable`` to be True.
         :type toc: bool
         :param header_alert: If not None, insert a Jive RTE "Alert" macro at the
-          beginning of the html (after the Table of Contents, if present).
+          beginning of the html (before the Table of Contents, if present).
           Setting this to forces ``editable`` to be True. The value of this
           parameter can either be a string which will be used as the content of
           a "info" alert box, or a 2-tuple of the string alert box type (one of
@@ -398,11 +398,11 @@ class JiveContent(object):
           Macros. Otherwise, they will not be processed by Jive.
         :type editable: bool
         :param toc: If True, insert the Jive RTE "Table of Contents" macro at
-          the beginning of the html. Setting this to True forces ``editable`` to
-          be True.
+          the beginning of the html, after header_alert (if specified). Setting
+          this to True forces ``editable`` to be True.
         :type toc: bool
         :param header_alert: If not None, insert a Jive RTE "Alert" macro at the
-          beginning of the html (after the Table of Contents, if present).
+          beginning of the html (before the Table of Contents, if present).
           Setting this to forces ``editable`` to be True. The value of this
           parameter can either be a string which will be used as the content of
           a "info" alert box, or a 2-tuple of the string alert box type (one of
@@ -438,6 +438,9 @@ class JiveContent(object):
             if jiveize:
                 logger.debug('Passing input HTML through jiveize_etree()')
                 doc = JiveContent.jiveize_etree(doc)
+            if toc:
+                logger.debug('Adding Jive RTM "Table of Contents" macro')
+                doc = JiveContent.etree_add_toc(doc)
             if header_alert is not None:
                 logger.debug(
                     'Adding Jive RTM "Alert" macro to header: %s', header_alert
@@ -452,9 +455,6 @@ class JiveContent(object):
                 doc = JiveContent.etree_add_alert(
                     doc, footer_alert, header=False
                 )
-            if toc:
-                logger.debug('Adding Jive RTM "Table of Contents" macro')
-                doc = JiveContent.etree_add_toc(doc)
             if handle_images:
                 logger.debug('Passing input HTML through _upload_images()')
                 doc, images = self._upload_images(doc, images)
