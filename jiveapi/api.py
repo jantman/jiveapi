@@ -402,24 +402,23 @@ class JiveApi(object):
             'core/v3/places/%s/contents' % place_id
         )
 
-    def _get_content_id_by_url(self, path):
+    def _get_content_id_by_html_url(self, path):
         """
-       Execute a GET request against the Jive API, handling pagination.
-
-       :param path: path or full URL to GET
+       Return contentID from given html/url
+       contentID is unique identifier which is associated with majority type of contents in Jive Api for example you can
+       look here https://developers.jivesoftware.com/api/v3/cloud/rest/DocumentEntity.html
+       :param path: html or full URL to GET
        :type path: str
-       :return: conentID from given url
+       :return: contentID from given url
        :rtype: ``str``
        """
         """
         :variable aux: stored _get response
-        :variable tmp: stored value of contentID 
         """
+        if not path.endswith('/api/v3'):
+            path += '/api/v3'
         aux = self._get(path, autopaginate=True)
-        if isinstance(aux, dict) and len(aux) > 0:
-            global tmp
-            tmp = aux["contentID"]
-            print(tmp)
+        if isinstance(aux, dict):
+            return aux.get('contentID')
         else:
-            print("Get function not return dictionary or return empty dictionary")
-            return -1
+            logger.debug("Unexpected return type of _get function, expected type is dictionary ")
