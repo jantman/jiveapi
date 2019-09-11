@@ -401,3 +401,25 @@ class JiveApi(object):
         return self._get(
             'core/v3/places/%s/contents' % place_id
         )
+
+    def _get_content_id_by_url(self, path):
+        """
+       Execute a GET request against the Jive API, handling pagination.
+
+       :param path: path or full URL to GET
+       :type path: str
+       :return: conentID from given url
+       :rtype: ``str``
+       """
+        """
+        :variable aux: stored _get response
+        :variable tmp: stored value of contentID 
+        """
+        aux = self._get(path, autopaginate=True)
+        if isinstance(aux, dict) and len(aux) > 0:
+            global tmp
+            tmp = aux["contentID"]
+            print(tmp)
+        else:
+            print("Get function not return dictionary or return empty dictionary")
+            return -1
