@@ -401,3 +401,24 @@ class JiveApi(object):
         return self._get(
             'core/v3/places/%s/contents' % place_id
         )
+
+    def _get_content_id_by_html_url(self, path):
+        """
+       Return contentID from given html/url
+       contentID is unique identifier which is associated with majority type of contents in Jive Api for example you can
+       look here https://developers.jivesoftware.com/api/v3/cloud/rest/DocumentEntity.html
+       :param path: html or full URL to GET
+       :type path: str
+       :return: contentID from given url
+       :rtype: ``str``
+       """
+        """
+        :variable aux: stored _get response
+        """
+        if not path.endswith('/api/v3'):
+            path += '/api/v3'
+        aux = self._get(path, autopaginate=True)
+        if isinstance(aux, dict):
+            return aux.get('contentID')
+        else:
+            logger.debug("Unexpected return type of _get function, expected type is dictionary ")
