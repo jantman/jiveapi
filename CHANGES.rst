@@ -1,6 +1,12 @@
 Changelog
 =========
 
+1.0.0 (2019-10-13)
+------------------
+
+* `PR 13 <https://github.com/jantman/jiveapi/pull/13>`__ - Add function to return contentID from URL (thanks to `patricia1387 <https://github.com/patricia1387>`__).
+* Announce abandonment of project / seeking new maintainer.
+
 0.3.0 (2018-11-18)
 ------------------
 

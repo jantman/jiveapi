@@ -2,16 +2,16 @@ jiveapi package
 ===============
 
 .. automodule:: jiveapi
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 Subpackages
 -----------
 
 .. toctree::
 
-    jiveapi.sphinx_theme
+   jiveapi.sphinx_theme
 
 Submodules
 ----------
@@ -24,4 +24,3 @@ Submodules
    jiveapi.jiveresponse
    jiveapi.utils
    jiveapi.version
-

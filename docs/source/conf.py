@@ -292,7 +292,7 @@ texinfo_documents = [
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
     'https://docs.python.org/3/': None,
-    'requests': ('http://docs.python-requests.org/en/master/', None),
+    'requests': ('https://requests.kennethreitz.org/en/master/', None),
     'sphinx': ('http://www.sphinx-doc.org/en/latest/', None)
 }
 

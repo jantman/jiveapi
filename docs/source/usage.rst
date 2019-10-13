@@ -154,7 +154,7 @@ Please keep in mind that, since the container runs as root, any files it writes 
 Sphinx Theme and Builder
 ------------------------
 
-This package includes a `Sphinx <http://www.sphinx-doc.org/>`_ theme and builder that generate single-page HTML output optimized for uploading to Jive via jiveapi. The theme is based on sphinx' :ref:`built-in "basic" theme <builtin-themes>` and the builder is based on sphinx' built-in :py:class:`~sphinx.builders.html.SingleFileHTMLBuilder`.
+This package includes a `Sphinx <http://www.sphinx-doc.org/>`_ theme and builder that generate single-page HTML output optimized for uploading to Jive via jiveapi. The theme is based on sphinx' :ref:`built-in "basic" theme <builtin-themes>` and the builder is based on sphinx' built-in :py:class:`sphinx:sphinx.builders.singlehtml.SingleFileHTMLBuilder`.
 
 To build your existing Sphinx documentation you need only install the jiveapi package and specify the "jiveapi" theme and "jiveapi" builder. For example, if your documentation source is in the ``source/`` directory, then you could build a single-page jive-optimized HTML file to ``jivehtml/index.html`` with:
 

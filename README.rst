@@ -9,9 +9,9 @@ jiveapi python package
    :target: https://readthedocs.org/projects/jiveapi/?badge=latest
    :alt: sphinx documentation for latest release
 
-.. image:: http://www.repostatus.org/badges/latest/wip.svg
-   :alt: Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.
-   :target: http://www.repostatus.org/#wip
+.. image:: https://www.repostatus.org/badges/latest/unsupported.svg
+   :alt: Project Status: Unsupported – The project has reached a stable, usable state but the author(s) have ceased all work on it. A new maintainer may be desired.
+   :target: https://www.repostatus.org/#unsupported
 
 Simple and limited Python client for `Jive <https://www.jivesoftware.com/>`_ collaboration software `ReST API v3 <https://developers.jivesoftware.com/api/v3/cloud/rest/index.html>`_, along with utilities for massaging HTML to display better on Jive. Also comes pre-installed in a Docker image and a Sphinx theme and builder for Jive-optimized HTML output.
 
@@ -20,11 +20,11 @@ Simple and limited Python client for `Jive <https://www.jivesoftware.com/>`_ col
 Scope and Status
 ----------------
 
+**This project is effectively abandoned/unsupported and needs a new maintainer!** My employer to longer uses Jive, so I'm no longer using this project and also have no way of testing it. If you are interested in taking over as maintainer, please open an issue!
+
 I'm writing this to be a working Python wrapper around a small portion of the Jive ReST API - specifically, uploading/publishing updating Documents, uploading embedded Images, and manipulating the input HTML to display better in Jive. I'm doing this in my personal time, but we'll be using the project at work for a very limited requirement: "syndicating" documentation that we publish on internal web servers (mostly Sphinx and Hugo static sites) to our corporate Jive instance. The main purpose for doing this is to reach a wider audience and for searchability, not to faithfully reproduce the layout and styling of the original HTML. I don't plan on adding support beyond what's required for that, but contributions are welcome.
 
-For the time being, this should be considered Alpha-quality software. It's young and likely only has a handful of code paths exercised on a regular basis, and from what I've seen in practice and in the documentation, I can only assume that Jive has many error conditions this software has yet to see. In short, for the time being, make sure you sanity check things or don't rely on this working 100% of the time. Bug reports are very welcome, but please be sure to include full debugging output.
-
-At least for this initial release, it is **highly recommended** that you capture DEBUG-level logging, as this will contain the Jive internal IDs needed if something goes wrong.
+This has been in use daily at my current employer for almost a year. It's stable for the particular way we use it, but some code paths may not have been fully exercised before.
 
 Also be aware that Jive **heavily modifies** HTML, including stripping out and sometimes replacing ``id`` attributes, breaking any internal anchor links containing dashes, etc. The high-level methods in this package make a best effort to modify HTML to work in Jive, but nothing is guaranteed. Once again, this is focused on content not presentation.
 
@@ -56,8 +56,8 @@ Requirements
 
 jiveapi is also available in a self-contained Docker image with all dependencies. See `https://hub.docker.com/r/jantman/jiveapi/ <https://hub.docker.com/r/jantman/jiveapi/>`_.
 
-* Python 3.4+. Yes, this package is *only* developed and tested against Python3, specifically 3.4 or later. It *should* work under 2.7 as well, but that is neither tested nor supported.
-* `requests <http://docs.python-requests.org/en/master/>`_
+* Python 3.5+. Yes, this package is *only* developed and tested against Python3, specifically 3.5 or later. It *should* work under 2.7 as well, but that is neither tested nor supported.
+* `requests <https://requests.kennethreitz.org/en/master/>`_
 * `premailer <http://github.com/peterbe/premailer>`_ (optional, only required for high-level JiveContent interface)
 * `lxml <http://lxml.de/>`_ (optional, only required for high-level JiveContent interface)
 
