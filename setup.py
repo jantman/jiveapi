@@ -49,7 +49,7 @@ requires = [
 
 
 classifiers = [
-    'Development Status :: 3 - Alpha',
+    'Development Status :: 7 - Inactive',
     'License :: OSI Approved :: GNU Affero General Public License '
     'v3 or later (AGPLv3+)',
     'Natural Language :: English',
